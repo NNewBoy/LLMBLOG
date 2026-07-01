@@ -1,0 +1,109 @@
+/* Element Plus 主题适配：用 CSS 变量桥接，使其跟随深/浅主题 */
+:root,
+[data-theme='light'] {
+  --el-color-primary: var(--accent);
+  --el-color-primary-light-3: #818cf8;
+  --el-color-primary-light-5: #a5b4fc;
+  --el-color-primary-light-7: #c7d2fe;
+  --el-color-primary-light-8: #e0e7ff;
+  --el-color-primary-light-9: var(--accent-soft);
+  --el-color-primary-dark-2: var(--accent-hover);
+  --el-text-color-primary: var(--text);
+  --el-text-color-regular: var(--text-secondary);
+  --el-border-color: var(--border);
+  --el-border-color-light: var(--border);
+  --el-bg-color: transparent;
+  --el-bg-color-page: transparent;
+  --el-fill-color-blank: transparent;
+  --el-box-shadow: var(--shadow);
+  --el-box-shadow-light: var(--shadow);
+}
+
+[data-theme='dark'] {
+  --el-text-color-primary: var(--text);
+  --el-text-color-regular: var(--text-secondary);
+  --el-border-color: var(--border);
+  --el-bg-color: transparent;
+  --el-bg-color-page: transparent;
+  --el-fill-color-blank: transparent;
+  --el-mask-color: rgba(0, 0, 0, 0.5);
+}
+
+.el-input__wrapper,
+.el-textarea__inner,
+.el-select__wrapper {
+  background: var(--surface) !important;
+  box-shadow: 0 0 0 1px var(--border) inset !important;
+  border-radius: var(--radius-md) !important;
+}
+.el-input__inner,
+.el-textarea__inner {
+  color: var(--text) !important;
+}
+.el-button {
+  border-radius: var(--radius-md) !important;
+}
+.el-button--primary {
+  background: var(--accent) !important;
+  border-color: var(--accent) !important;
+}
+.el-button--primary:hover {
+  background: var(--accent-hover) !important;
+  border-color: var(--accent-hover) !important;
+}
+.el-button--danger {
+  background: var(--error) !important;
+  border-color: var(--error) !important;
+  color: #fff !important;
+}
+.el-table {
+  background: transparent !important;
+  color: var(--text) !important;
+}
+.el-table tr,
+.el-table th.el-table__cell,
+.el-table td.el-table__cell {
+  background: transparent !important;
+  border-color: var(--border) !important;
+  color: var(--text) !important;
+}
+.el-table--enable-row-hover .el-table__body tr:hover > td.el-table__cell {
+  background: var(--surface-hover) !important;
+}
+.el-pagination .el-pager li,
+.el-pagination button {
+  background: transparent !important;
+  color: var(--text-secondary) !important;
+}
+.el-pagination .el-pager li.is-active {
+  color: var(--accent) !important;
+}
+.el-dialog {
+  background: var(--surface-strong) !important;
+  backdrop-filter: blur(var(--blur)) saturate(var(--saturate));
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-lg) !important;
+  color: var(--text) !important;
+}
+.el-drawer {
+  background: var(--surface-strong) !important;
+  backdrop-filter: blur(var(--blur)) saturate(var(--saturate));
+}
+.el-message-box {
+  background: var(--surface-strong) !important;
+  border: 1px solid var(--surface-border) !important;
+  color: var(--text) !important;
+}
+.el-card {
+  background: var(--surface) !important;
+  border: 1px solid var(--surface-border) !important;
+  border-radius: var(--radius-lg) !important;
+  color: var(--text) !important;
+  backdrop-filter: blur(var(--blur)) saturate(var(--saturate));
+}
+.el-empty__description p {
+  color: var(--text-secondary) !important;
+}
+.el-tag {
+  border-radius: var(--radius-pill) !important;
+}

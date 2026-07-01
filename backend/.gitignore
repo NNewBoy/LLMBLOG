@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+.env
+app/data/
+uploads/
+*.db
+*.db-shm
+*.db-wal
+.venv/
