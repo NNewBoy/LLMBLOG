@@ -9,6 +9,8 @@ import type {
   SiteSettings,
   Overview,
   DayPoint,
+  TerminalPoint,
+  TopNote,
 } from '@/types'
 
 /* ===== auth ===== */
@@ -81,4 +83,6 @@ export const getOverview = () => request.get<unknown, Overview>('/stats/overview
 export const getVisitors = (days = 30) =>
   request.get<unknown, DayPoint[]>('/stats/visitors', { params: { days } })
 export const getTopNotes = (limit = 5) =>
-  request.get<unknown, { id: number; title: string; slug: string; view_count: number }[]>('/stats/top-notes', { params: { limit } })
+  request.get<unknown, TopNote[]>('/stats/top-notes', { params: { limit } })
+export const getTerminals = (days = 30) =>
+  request.get<unknown, TerminalPoint[]>('/stats/terminals', { params: { days } })

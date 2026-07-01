@@ -546,11 +546,11 @@ settings (单行配置表)
 | 笔记管理 | 创建 / 编辑 / 删除（软删） | ✅ | 删除走 `is_deleted=1` 软删 |
 | 笔记管理 | 列表（分页+标签过滤+置顶） | ✅ | 置顶 `is_pinned` 排序生效 |
 | 笔记管理 | 时间线归档 | ✅ | `/api/v1/notes/timeline` |
-| 笔记管理 | 详情（PV+1 / 上下篇） | ✅ | 后端已返回 `prev/next`，前台未渲染上下篇导航 |
+| 笔记管理 | 详情（PV+1 / 上下篇） | ✅ | 后端返回 `prev/next`，前台 NoteDetail 已渲染上下篇导航卡片 |
 | 笔记管理 | slug 默认用 ID | ✅ | **偏差**：原计划 slug 化标题，中文标题不友好，已按 SPEC §3.1「默认用 ID」实现 |
-| 笔记管理 | Markdown 渲染 / TOC / 阅读进度 / 回顶 / 代码复制 / 图片预览 | ⬜ | NoteDetail.vue 当前仅展示原文，未接入渲染与增强 |
+| 笔记管理 | Markdown 渲染 / TOC / 阅读进度 / 回顶 / 代码复制 / 图片预览 | ✅ | NoteDetail 接入 Vditor.preview 渲染；TOC 滚动高亮+平滑滚动；阅读进度条；回顶 FAB；代码块复制按钮；图片懒加载+灯箱预览；上下篇导航 |
 | 标签管理 | 标签 CRUD | ✅ | 后端 + 后台均可用 |
-| 评论 | 提交 / 点赞 / 隐藏 / 删除 | ✅ | 后端全量；前台评论组件未接入 NoteDetail |
+| 评论 | 提交 / 点赞 / 隐藏 / 删除 | ✅ | 后端全量；前台 CommentSection 组件接入 NoteDetail（2 级嵌套 + 蜜罐 + 点赞 + 回复 + 分页加载） |
 | 评论 | 蜜罐反垃圾（`website` 字段） | ✅ | **偏差**：SPEC 未明示，新增蜜罐 + 3次/分钟 限流 |
 | 图片管理 | 上传（Pillow 320px 缩略图） / 列表 / 删除 | ✅ | |
 | 设置 | 站点标题 / 副标题 / 关于 / 密码修改 | ✅ | 单行 settings 表 |
@@ -579,7 +579,7 @@ settings (单行配置表)
 | `/api/v1/tags` | ✅ | CRUD |
 | `/api/v1/comments` | ✅ | list_by_note / create / like / toggle_hide / list_all / delete |
 | `/api/v1/images` | ✅ | list / upload / delete |
-| `/api/v1/stats` | ✅ | dashboard 概览数据 |
+| `/api/v1/stats` | ✅ | overview / visitors / top-notes / terminals（终端分布，M3 新增） |
 | `/api/v1/settings` | ✅ | 读取 + 更新 |
 | 统一响应 `{code,message,data}` | ✅ | 全局异常处理器封装 |
 | OpenAPI 自动文档 | ✅ | `/docs` `/openapi.json` |
@@ -589,9 +589,9 @@ settings (单行配置表)
 | 阶段 | 状态 | 说明 |
 | --- | --- | --- |
 | M1 基础架构 | ✅ | 前后端骨架、主题、布局、路由、鉴权全部落地 |
-| M2 内容前台 | 🚧 | 首页/标签/时间线/搜索可用；NoteDetail 仅骨架，缺渲染与评论 |
-| M3 后台管理 | 🚧 | 笔记/图片/标签/评论/设置可用；Dashboard 仅卡片，缺 ECharts 图表；NoteEdit 缺自动保存 |
-| M4 优化打磨 | ⬜ | 性能（Vditor 分包、虚拟滚动）、安全加固、动效打磨、可访问性 |
+| M2 内容前台 | ✅ | 首页/标签/时间线/搜索可用；NoteDetail 已接入 Markdown 渲染 / TOC / 阅读进度 / 回顶 / 代码复制 / 图片灯箱 / 上下篇 / 评论区；搜索关键词高亮 |
+| M3 后台管理 | ✅ | 笔记/图片/标签/评论/设置可用；Dashboard 已接入 ECharts（访客趋势/终端分布/Top 笔记）；NoteEdit 已接入自动保存/Ctrl+S/离开确认 |
+| M4 优化打磨 | ⬜ | 性能（Vditor 分包、虚拟滚动）、安全加固、动效打磨、可访问性回归 |
 | M5 部署上线 | ⬜ | 打包脚本、Nginx 配置、备份脚本未产出 |
 
 ### B.5 关键技术决策记录

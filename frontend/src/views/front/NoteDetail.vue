@@ -1,65 +1,319 @@
 <script setup lang="ts">
-import { onMounted, ref, watch } from 'vue'
+import { onMounted, onBeforeUnmount, ref, watch, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Eye, MessageCircle, ArrowLeft } from 'lucide-vue-next'
+import { Eye, MessageCircle, ArrowLeft, ArrowUp, ChevronLeft, ChevronRight } from 'lucide-vue-next'
 import { getNote } from '@/api'
 import type { NoteDetail } from '@/types'
 import GlassCard from '@/components/GlassCard.vue'
 import Skeleton from '@/components/Skeleton.vue'
+import CommentSection from '@/components/CommentSection.vue'
+
+interface TocItem {
+  id: string
+  text: string
+  level: number
+}
 
 const route = useRoute()
 const router = useRouter()
 const note = ref<NoteDetail | null>(null)
 const loading = ref(true)
 
+const contentEl = ref<HTMLDivElement>()
+const tocEl = ref<HTMLElement>()
+const toc = ref<TocItem[]>([])
+const activeTocId = ref('')
+const showTop = ref(false)
+const progress = ref(0)
+
+const lightboxSrc = ref('')
+const lightboxAlt = ref('')
+
+let cleanupFns: Array<() => void> = []
+
 async function load() {
   loading.value = true
+  toc.value = []
+  activeTocId.value = ''
   try {
     note.value = await getNote(route.params.slug as string)
+    if (note.value) {
+      await nextTick()
+      await renderContent()
+    }
   } catch {
     note.value = null
   } finally {
     loading.value = false
   }
 }
+
+async function renderContent() {
+  if (!note.value || !contentEl.value) return
+  const el = contentEl.value
+  const content = note.value.content
+  const Vditor = (await import('vditor')).default
+  await import('vditor/dist/index.css')
+  await Vditor.preview(el, content, {
+    mode: 'light',
+    hljs: { lineNumber: true, style: 'github' },
+    lazyLoadImage: 'https://cdn.jsdelivr.net/npm/vditor/dist/images/img-loading.svg',
+  })
+  buildToc(el)
+  enhanceCodeBlocks(el)
+  enhanceImages(el)
+  bindScroll()
+}
+
+function buildToc(root: HTMLElement) {
+  const heads = root.querySelectorAll('h1, h2, h3, h4, h5, h6')
+  const items: TocItem[] = []
+  heads.forEach((h, i) => {
+    if (!h.id) {
+      h.id = (h.textContent || '').trim() || `toc-${i}`
+    }
+    items.push({
+      id: h.id,
+      text: (h.textContent || '').trim(),
+      level: Number(h.tagName.slice(1)),
+    })
+  })
+  toc.value = items
+  if (items.length) activeTocId.value = items[0].id
+}
+
+function enhanceCodeBlocks(root: HTMLElement) {
+  const blocks = root.querySelectorAll('pre')
+  blocks.forEach((pre) => {
+    if (pre.querySelector('.code-copy-btn')) return
+    pre.style.position = 'relative'
+    const btn = document.createElement('button')
+    btn.className = 'code-copy-btn'
+    btn.setAttribute('aria-label', '复制代码')
+    btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>'
+    btn.addEventListener('click', async () => {
+      const code = pre.querySelector('code')
+      const text = code ? code.textContent : pre.textContent
+      if (!text) return
+      try {
+        await navigator.clipboard.writeText(text)
+        btn.classList.add('copied')
+        setTimeout(() => {
+          btn.classList.remove('copied')
+        }, 1600)
+      } catch {
+        /* clipboard unavailable */
+      }
+    })
+    pre.appendChild(btn)
+  })
+}
+
+function enhanceImages(root: HTMLElement) {
+  const imgs = root.querySelectorAll('img')
+  imgs.forEach((img) => {
+    img.setAttribute('loading', 'lazy')
+    img.setAttribute('tabindex', '0')
+    img.classList.add('article-img')
+    img.addEventListener('click', () => {
+      lightboxSrc.value = img.src
+      lightboxAlt.value = img.alt
+    })
+    img.addEventListener('keydown', (e: KeyboardEvent) => {
+      if (e.key === 'Enter') {
+        lightboxSrc.value = img.src
+        lightboxAlt.value = img.alt
+      }
+    })
+  })
+}
+
+function bindScroll() {
+  unbindScroll()
+  const onScroll = () => {
+    const doc = document.documentElement
+    const scrollTop = window.scrollY || doc.scrollTop
+    const max = doc.scrollHeight - window.innerHeight
+    progress.value = max > 0 ? Math.min(100, (scrollTop / max) * 100) : 0
+    showTop.value = scrollTop > 400
+    updateActiveToc()
+  }
+  window.addEventListener('scroll', onScroll, { passive: true })
+  onScroll()
+  cleanupFns.push(() => window.removeEventListener('scroll', onScroll))
+}
+
+function unbindScroll() {
+  cleanupFns.forEach((fn) => fn())
+  cleanupFns = []
+}
+
+function updateActiveToc() {
+  if (!toc.value.length || !contentEl.value) return
+  const heads = contentEl.value.querySelectorAll('h1, h2, h3, h4, h5, h6')
+  let current = toc.value[0].id
+  const offset = 120
+  heads.forEach((h) => {
+    const rect = (h as HTMLElement).getBoundingClientRect()
+    if (rect.top <= offset) {
+      current = h.id
+    }
+  })
+  activeTocId.value = current
+  // 同步 TOC 滚动到可视
+  if (tocEl.value) {
+    const active = tocEl.value.querySelector('.toc-item.on') as HTMLElement | null
+    if (active) {
+      const cRect = tocEl.value.getBoundingClientRect()
+      const aRect = active.getBoundingClientRect()
+      if (aRect.top < cRect.top || aRect.bottom > cRect.bottom) {
+        active.scrollIntoView({ block: 'nearest' })
+      }
+    }
+  }
+}
+
+function scrollToHeading(id: string) {
+  const target = document.getElementById(id)
+  if (!target) return
+  const top = target.getBoundingClientRect().top + window.scrollY - 80
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  window.scrollTo({ top, behavior: reduce ? 'auto' : 'smooth' })
+}
+
+function backToTop() {
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  window.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' })
+}
+
+function closeLightbox() {
+  lightboxSrc.value = ''
+  lightboxAlt.value = ''
+}
+
 onMounted(load)
 watch(() => route.params.slug, load)
+onBeforeUnmount(unbindScroll)
 </script>
 
 <template>
   <div class="detail">
+    <!-- 阅读进度条 -->
+    <div class="progress-bar" :style="{ width: progress + '%' }" aria-hidden="true" />
+
     <GlassCard v-if="loading" padding="32px">
       <Skeleton :lines="8" />
     </GlassCard>
+
     <template v-else-if="note">
-      <GlassCard padding="32px" class="article">
-        <button class="back" @click="router.back()">
-          <ArrowLeft :size="16" /> 返回
-        </button>
-        <h1 class="title">{{ note.title }}</h1>
-        <div class="meta">
-          <span>{{ note.author }}</span>
-          <span class="tabular">{{ new Date(note.created_at).toLocaleDateString('zh-CN') }}</span>
-          <span><Eye :size="14" /> <span class="tabular">{{ note.view_count }}</span></span>
-          <span><MessageCircle :size="14" /> <span class="tabular">{{ note.comment_count }}</span></span>
-        </div>
-        <div class="tags">
-          <span v-for="t in note.tags" :key="t.id" class="tag">{{ t.name }}</span>
-        </div>
-        <div class="content">{{ note.content }}</div>
-        <p class="md-hint">（M2 将接入 Markdown 渲染 / 目录 / 评论）</p>
-      </GlassCard>
+      <div class="detail-grid">
+        <!-- 正文 -->
+        <GlassCard padding="32px" class="article">
+          <button class="back" @click="router.back()">
+            <ArrowLeft :size="16" /> 返回
+          </button>
+          <h1 class="title">{{ note.title }}</h1>
+          <div class="meta">
+            <span>{{ note.author }}</span>
+            <span class="tabular">{{ new Date(note.created_at).toLocaleDateString('zh-CN') }}</span>
+            <span><Eye :size="14" /> <span class="tabular">{{ note.view_count }}</span></span>
+            <span><MessageCircle :size="14" /> <span class="tabular">{{ note.comment_count }}</span></span>
+          </div>
+          <div v-if="note.tags && note.tags.length" class="tags">
+            <span v-for="t in note.tags" :key="t.id" class="tag">{{ t.name }}</span>
+          </div>
+          <div ref="contentEl" class="content vditor-content" />
+
+          <!-- 上下篇 -->
+          <nav v-if="note.prev || note.next" class="prevnext" aria-label="上下篇导航">
+            <button
+              v-if="note.prev"
+              class="pn prev"
+              @click="router.push({ name: 'note-detail', params: { slug: note.prev!.slug } })"
+            >
+              <ChevronLeft :size="16" />
+              <span class="pn-label">上一篇</span>
+              <span class="pn-title">{{ note.prev.title }}</span>
+            </button>
+            <span v-else class="pn placeholder" />
+            <button
+              v-if="note.next"
+              class="pn next"
+              @click="router.push({ name: 'note-detail', params: { slug: note.next!.slug } })"
+            >
+              <span class="pn-label">下一篇</span>
+              <span class="pn-title">{{ note.next.title }}</span>
+              <ChevronRight :size="16" />
+            </button>
+            <span v-else class="pn placeholder" />
+          </nav>
+        </GlassCard>
+
+        <!-- TOC 侧栏 -->
+        <aside v-if="toc.length" ref="tocEl" class="toc" aria-label="目录">
+          <div class="toc-head">目录</div>
+          <a
+            v-for="item in toc"
+            :key="item.id"
+            class="toc-item"
+            :class="{ on: activeTocId === item.id }"
+            :style="{ paddingLeft: 8 + (item.level - 1) * 12 + 'px' }"
+            href="javascript:void(0)"
+            @click="scrollToHeading(item.id)"
+          >
+            {{ item.text }}
+          </a>
+        </aside>
+      </div>
+
+      <!-- 评论区 -->
+      <CommentSection :note-id="note.id" />
     </template>
+
     <GlassCard v-else padding="48px" class="empty">
       <p>笔记不存在或已隐藏。</p>
       <button class="back" @click="router.push('/')">返回首页</button>
     </GlassCard>
+
+    <!-- 回到顶部 -->
+    <Transition name="fab">
+      <button v-if="showTop" class="back-top" aria-label="回到顶部" @click="backToTop">
+        <ArrowUp :size="20" />
+      </button>
+    </Transition>
+
+    <!-- 图片灯箱 -->
+    <Transition name="fade">
+      <div v-if="lightboxSrc" class="lightbox" role="dialog" aria-modal="true" @click="closeLightbox">
+        <img :src="lightboxSrc" :alt="lightboxAlt" class="lightbox-img" @click.stop />
+        <button class="lightbox-close" aria-label="关闭" @click="closeLightbox">×</button>
+      </div>
+    </Transition>
   </div>
 </template>
 
 <style scoped>
+.detail {
+  position: relative;
+}
+.progress-bar {
+  position: fixed;
+  top: var(--navbar-h);
+  left: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--accent), var(--accent-hover));
+  z-index: 90;
+  transition: width 80ms linear;
+}
+.detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 220px;
+  gap: var(--sp-5);
+  align-items: start;
+}
 .article {
   position: relative;
+  min-width: 0;
 }
 .back {
   display: inline-flex;
@@ -109,17 +363,294 @@ watch(() => route.params.slug, load)
   font-size: var(--fs-xs);
 }
 .content {
-  white-space: pre-wrap;
-  word-break: break-word;
   line-height: 1.8;
   color: var(--text);
   font-size: var(--fs-base);
+  min-width: 0;
 }
-.md-hint {
-  margin-top: var(--sp-6);
+
+/* Vditor 渲染内容样式覆盖 */
+.vditor-content :deep(h1),
+.vditor-content :deep(h2),
+.vditor-content :deep(h3),
+.vditor-content :deep(h4),
+.vditor-content :deep(h5),
+.vditor-content :deep(h6) {
+  margin: var(--sp-5) 0 var(--sp-3);
+  font-weight: 600;
+  line-height: 1.4;
+  scroll-margin-top: 80px;
+}
+.vditor-content :deep(h1) {
+  font-size: var(--fs-lg);
+}
+.vditor-content :deep(h2) {
+  font-size: var(--fs-md);
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+}
+.vditor-content :deep(h3) {
+  font-size: var(--fs-base);
+}
+.vditor-content :deep(p) {
+  margin: var(--sp-3) 0;
+}
+.vditor-content :deep(a) {
+  color: var(--accent);
+  text-decoration: none;
+}
+.vditor-content :deep(a:hover) {
+  text-decoration: underline;
+}
+.vditor-content :deep(blockquote) {
+  margin: var(--sp-4) 0;
+  padding: var(--sp-2) var(--sp-4);
+  border-left: 3px solid var(--accent);
+  background: var(--accent-soft);
   color: var(--text-secondary);
-  font-size: var(--fs-xs);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
 }
+.vditor-content :deep(code) {
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-hover);
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+}
+.vditor-content :deep(pre) {
+  margin: var(--sp-4) 0;
+  padding: var(--sp-4);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  overflow-x: auto;
+  border: 1px solid var(--border);
+}
+.vditor-content :deep(pre code) {
+  padding: 0;
+  background: transparent;
+}
+.vditor-content :deep(ul),
+.vditor-content :deep(ol) {
+  margin: var(--sp-3) 0;
+  padding-left: var(--sp-5);
+}
+.vditor-content :deep(li) {
+  margin: var(--sp-1) 0;
+}
+.vditor-content :deep(table) {
+  width: 100%;
+  margin: var(--sp-4) 0;
+  border-collapse: collapse;
+}
+.vditor-content :deep(th),
+.vditor-content :deep(td) {
+  padding: var(--sp-2) var(--sp-3);
+  border: 1px solid var(--border);
+  text-align: left;
+}
+.vditor-content :deep(th) {
+  background: var(--surface-hover);
+  font-weight: 600;
+}
+.vditor-content :deep(img),
+.vditor-content :deep(.article-img) {
+  max-width: 100%;
+  border-radius: var(--radius-sm);
+  margin: var(--sp-3) 0;
+  cursor: zoom-in;
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+.vditor-content :deep(img:hover) {
+  transform: scale(1.01);
+}
+.vditor-content :deep(hr) {
+  margin: var(--sp-5) 0;
+  border: none;
+  border-top: 1px solid var(--border);
+}
+
+/* 代码复制按钮 */
+.vditor-content :deep(.code-copy-btn) {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--surface-strong);
+  color: var(--text-secondary);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity var(--dur-fast), color var(--dur-fast), background var(--dur-fast);
+}
+.vditor-content :deep(pre:hover .code-copy-btn) {
+  opacity: 1;
+}
+.vditor-content :deep(.code-copy-btn:hover) {
+  color: var(--accent);
+}
+.vditor-content :deep(.code-copy-btn.copied) {
+  opacity: 1;
+  color: var(--success);
+}
+
+/* 上下篇 */
+.prevnext {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-3);
+  margin-top: var(--sp-7);
+  padding-top: var(--sp-5);
+  border-top: 1px solid var(--border);
+}
+.pn {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: var(--sp-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color var(--dur-fast), background var(--dur-fast);
+  min-width: 0;
+}
+.pn.next {
+  text-align: right;
+  align-items: flex-end;
+}
+.pn:hover {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+.pn.placeholder {
+  visibility: hidden;
+}
+.pn-label {
+  font-size: var(--fs-xs);
+  color: var(--text-secondary);
+}
+.pn-title {
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+/* TOC */
+.toc {
+  position: sticky;
+  top: calc(var(--navbar-h) + var(--sp-4));
+  align-self: start;
+  max-height: calc(100vh - var(--navbar-h) - var(--sp-6));
+  overflow-y: auto;
+  padding: var(--sp-3);
+  background: var(--surface);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-md);
+  backdrop-filter: blur(var(--blur)) saturate(var(--saturate));
+}
+.toc-head {
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: var(--sp-2);
+  padding: 0 4px;
+}
+.toc-item {
+  display: block;
+  padding: 4px 8px;
+  font-size: var(--fs-xs);
+  color: var(--text-secondary);
+  text-decoration: none;
+  border-left: 2px solid transparent;
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  line-height: 1.5;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color var(--dur-fast), border-color var(--dur-fast), background var(--dur-fast);
+}
+.toc-item:hover {
+  color: var(--accent);
+}
+.toc-item.on {
+  color: var(--accent);
+  border-left-color: var(--accent);
+  background: var(--accent-soft);
+  font-weight: 500;
+}
+
+/* 回到顶部 */
+.back-top {
+  position: fixed;
+  right: var(--sp-5);
+  bottom: var(--sp-6);
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: var(--accent);
+  color: var(--accent-on);
+  cursor: pointer;
+  box-shadow: var(--shadow-strong);
+  z-index: 80;
+  transition: background var(--dur-fast), transform var(--dur-fast);
+}
+.back-top:hover {
+  background: var(--accent-hover);
+  transform: translateY(-2px);
+}
+
+/* 灯箱 */
+.lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--sp-6);
+  cursor: zoom-out;
+}
+.lightbox-img {
+  max-width: 90vw;
+  max-height: 90vh;
+  border-radius: var(--radius-sm);
+  cursor: default;
+}
+.lightbox-close {
+  position: absolute;
+  top: var(--sp-4);
+  right: var(--sp-5);
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+  font-size: 24px;
+  cursor: pointer;
+}
+.lightbox-close:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
 .empty {
   text-align: center;
   color: var(--text-secondary);
@@ -127,5 +658,52 @@ watch(() => route.params.slug, load)
 .empty .back {
   margin-top: var(--sp-3);
   justify-content: center;
+}
+
+/* 过渡 */
+.fab-enter-active,
+.fab-leave-active {
+  transition: opacity var(--dur-fast), transform var(--dur-fast);
+}
+.fab-enter-from,
+.fab-leave-to {
+  opacity: 0;
+  transform: translateY(8px);
+}
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity var(--dur-base);
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+/* 响应式：移动端隐藏 TOC，上下篇单列 */
+@media (max-width: 1024px) {
+  .detail-grid {
+    grid-template-columns: 1fr;
+  }
+  .toc {
+    display: none;
+  }
+}
+@media (max-width: 640px) {
+  .prevnext {
+    grid-template-columns: 1fr;
+  }
+  .pn.next {
+    text-align: left;
+    align-items: flex-start;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .progress-bar {
+    transition: none;
+  }
+  .back-top {
+    transition: none;
+  }
 }
 </style>

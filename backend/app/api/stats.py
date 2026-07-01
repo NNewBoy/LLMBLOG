@@ -47,3 +47,20 @@ def top_notes(
 ):
     notes = db.query(Note).filter(Note.deleted_at.is_(None)).order_by(Note.view_count.desc()).limit(limit).all()
     return ok([{"id": n.id, "title": n.title, "slug": n.slug, "view_count": n.view_count} for n in notes])
+
+
+@router.get("/terminals")
+def terminals(
+    days: int = Query(30, ge=1, le=365),
+    db: Session = Depends(get_db),
+    _: str = Depends(require_admin),
+):
+    since = datetime.utcnow() - timedelta(days=days)
+    rows = (
+        db.query(Visitor.terminal, func.count().label("c"))
+        .filter(Visitor.created_at >= since)
+        .group_by(Visitor.terminal)
+        .order_by(func.count().desc())
+        .all()
+    )
+    return ok([{"name": (r.terminal or "未知"), "value": int(r.c)} for r in rows])

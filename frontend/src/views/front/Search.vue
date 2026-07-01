@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref, watch } from 'vue'
+import { onMounted, ref, watch, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { listNotes } from '@/api'
 import type { NoteSummary } from '@/types'
@@ -29,6 +29,29 @@ async function doSearch() {
 }
 onMounted(doSearch)
 watch(() => route.query.q, doSearch)
+
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}
+
+function escapeRegExp(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
+function highlight(text: string): string {
+  const safe = escapeHtml(text || '')
+  if (!q.value.trim()) return safe
+  const kw = escapeRegExp(q.value.trim())
+  const re = new RegExp(`(${kw})`, 'gi')
+  return safe.replace(re, '<mark class="hl">$1</mark>')
+}
+
+const hasResults = computed(() => !loading.value && results.value.length > 0)
 </script>
 
 <template>
@@ -36,18 +59,18 @@ watch(() => route.query.q, doSearch)
     <h2 class="page-title">搜索结果：{{ q || '—' }}</h2>
     <Skeleton v-if="loading" :lines="5" />
     <template v-else>
-      <div v-if="results.length" class="list">
+      <div v-if="hasResults" class="list">
         <div
           v-for="n in results"
           :key="n.id"
           class="item"
           @click="router.push({ name: 'note-detail', params: { slug: n.slug } })"
         >
-          <h3 class="t">{{ n.title }}</h3>
-          <p class="s">{{ n.summary }}</p>
+          <h3 class="t" v-html="highlight(n.title)" />
+          <p class="s" v-html="highlight(n.summary)" />
         </div>
       </div>
-      <EmptyState v-else text="未找到相关笔记" />
+      <EmptyState v-else :text="q ? `未找到「${q}」相关笔记` : '输入关键词开始搜索'" />
     </template>
   </GlassCard>
 </template>
@@ -80,5 +103,17 @@ watch(() => route.query.q, doSearch)
   margin: 0;
   font-size: var(--fs-sm);
   color: var(--text-secondary);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+:deep(.hl) {
+  background: var(--accent-soft);
+  color: var(--accent);
+  padding: 0 2px;
+  border-radius: 2px;
+  font-weight: 600;
 }
 </style>

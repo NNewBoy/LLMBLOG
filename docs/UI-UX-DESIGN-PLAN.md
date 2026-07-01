@@ -281,8 +281,8 @@
 | 阶段 | UI/UX 交付 | 状态 | 实现说明 |
 | --- | --- | --- | --- |
 | M1 基础 | 主题令牌、`.glass`、布局（FrontLayout/AdminLayout）、顶部栏、Drawer、ThemeToggle、Toast、Skeleton、EmptyState、路由守卫登录页 | ✅ | `variables.css` + `glass.css` + `element-overrides.css` 落地；AppNavbar/AdminLayout 含移动 Drawer；ThemeToggle 含跟随系统；ElMessage 充当 Toast；Skeleton/EmptyState 由 Element Plus 提供；路由守卫 `requiresAuth` + 401 重定向 |
-| M2 前台 | NoteCard、首页、标签云页、时间线页、搜索弹层、详情页（TOC/BackToTop/ReadingProgress/代码复制/图片预览）、评论区 | 🚧 | 首页/标签云/时间线/搜索弹层 ✅；**NoteDetail 仅骨架**：缺 Markdown 渲染、TOC、阅读进度、回顶、代码复制、图片预览、上下篇导航、评论区接入 |
-| M3 后台 | AdminLayout、Dashboard（StatCard+图表）、笔记列表+编辑（Vditor+自动保存）、图片管理、标签管理、评论管理、系统设置 | 🚧 | AdminLayout/笔记 CRUD/图片/标签/评论/设置 ✅；Dashboard 仅 StatCard，**缺 ECharts 访客趋势/终端分布/Top 笔记图表**；NoteEdit 已接 Vditor，**缺自动保存/Ctrl+S/离开确认** |
+| M2 前台 | NoteCard、首页、标签云页、时间线页、搜索弹层、详情页（TOC/BackToTop/ReadingProgress/代码复制/图片预览）、评论区 | ✅ | 首页/标签云/时间线/搜索弹层 ✅；NoteDetail 已接入 Vditor.preview 渲染 + TOC 滚动高亮 + 阅读进度条 + 回顶 FAB + 代码块复制 + 图片懒加载/灯箱 + 上下篇导航 + 评论区（CommentSection）；搜索页关键词高亮 |
+| M3 后台 | AdminLayout、Dashboard（StatCard+图表）、笔记列表+编辑（Vditor+自动保存）、图片管理、标签管理、评论管理、系统设置 | ✅ | AdminLayout/笔记 CRUD/图片/标签/评论/设置 ✅；Dashboard 已接入 ECharts（访客趋势折线/终端分布饼/Top 笔记条形 + 三态 + 主题联动）；NoteEdit 已接 Vditor + 自动保存(localStorage 30s 节流) + Ctrl/S + 离开确认 |
 | M4 打磨 | 动效错峰、虚拟滚动、可访问性扫描、深色对比验证、375px/横屏测试、reduced-motion、性能（懒加载/分包） | ⬜ | `prefers-reduced-motion` 令牌已就位但未全面应用；Vditor 仍为整块 chunk，未分包；虚拟滚动未接入 |
 | M5 上线 | 打包、Nginx、备份、监控 | ⬜ | 待 M4 完成后产出部署脚本与配置 |
 
@@ -294,9 +294,9 @@
 > 快照：2026-07-02。✅ = 已通过 ｜ 🚧 = 部分 ｜ ⬜ = 未做
 
 **首页**：[✅] 卡片错峰入场  [✅] 置顶徽章带图标  [✅] 分页/无限滚动 Skeleton  [✅] 空状态  
-**详情**：[⬜] 阅读进度条  [⬜] 代码复制反馈  [⬜] 图片懒加载+预览  [⬜] TOC 高亮+平滑滚动  [⬜] 回到顶部  [⬜] 评论乐观更新+防刷  
-**后台编辑**：[⬜] 自动保存指示  [⬜] 离开确认  [⬜] 快捷键  [✅] 必填校验  [✅] 图片上传入库  
-**图表**：[⬜] 三态（空/载/错）  [⬜] 可访问色  [⬜] reduced-motion  [⬜] aria-label 摘要  
+**详情**：[✅] 阅读进度条  [✅] 代码复制反馈  [✅] 图片懒加载+预览  [✅] TOC 高亮+平滑滚动  [✅] 回到顶部  [✅] 评论提交+防刷（蜜罐+限流）  
+**后台编辑**：[✅] 自动保存指示  [✅] 离开确认  [✅] 快捷键（Ctrl/⌘+S）  [✅] 必填校验  [✅] 图片上传入库  
+**图表**：[✅] 三态（空/载/错）[✅] 可访问色  [✅] reduced-motion  [✅] aria-label 摘要  
 **全局**：[🚧] 双主题对比验证  [🚧] 375px 无横向滚动  [🚧] 键盘可达  [✅] 焦点环可见
 
 ---
@@ -316,45 +316,28 @@
 | 路由守卫 | `frontend/src/router/index.ts` | ✅ |
 | 登录页 | `frontend/src/views/auth/Login.vue`（SHA256 预哈希） | ✅ |
 | Vditor 编辑器 | `frontend/src/components/VditorEditor.vue`（动态 import + 自定义上传） | ✅ |
+| 评论组件 | `frontend/src/components/CommentSection.vue`（2 级嵌套 + 蜜罐 + 点赞 + 回复 + 分页） | ✅ |
+| ECharts 封装 | `frontend/src/components/BaseChart.vue`（init/resize/dispose + 主题联动） | ✅ |
+| 笔记详情 | `views/front/NoteDetail.vue`（Markdown 渲染 + TOC + 进度 + 回顶 + 代码复制 + 灯箱 + 上下篇） | ✅ |
 | 前台首页 / 标签云 / 时间线 / 搜索 | `views/front/*` | ✅ |
-| 后台笔记列表 / 编辑 | `views/admin/Notes.vue` `NoteEdit.vue` | ✅ |
+| 后台笔记列表 / 编辑 | `views/admin/Notes.vue` `NoteEdit.vue`（自动保存 + Ctrl+S + 离开确认） | ✅ |
 | 后台图片 / 标签 / 评论 / 设置 | `views/admin/*` | ✅ |
-| Dashboard 概览卡片 | `views/admin/Dashboard.vue` | 🚧（仅卡片） |
+| Dashboard 概览 + ECharts 图表 | `views/admin/Dashboard.vue` + `components/BaseChart.vue` | ✅ |
 
 ### 9.2 后续待办（按优先级）
 
-1. **NoteDetail 渲染与增强**（M2 收尾，最高优先级）
-   - 接入 `Vditor.preview()` 或 markdown-it 渲染 Markdown
-   - 生成 TOC + 滚动高亮 + 平滑滚动
-   - 阅读进度条（scroll 百分比）
-   - 回到顶部按钮
-   - 代码块复制按钮（带反馈）
-   - 图片懒加载 + lightbox 预览
-   - 渲染上下篇导航（后端已返回 `prev/next`）
-   - 接入评论区组件（2 级嵌套 + 点赞 + 蜜罐提交）
+> M2 / M3 核心功能已全部落地。剩余项归入 M4 / M5。
 
-2. **Dashboard 图表**（M3 收尾）
-   - ECharts 访客趋势折线/面积图
-   - 终端分布饼图（≤5 类）
-   - Top 笔记横向条形
-   - 空数据/加载/错误三态 + reduced-motion
+1. **M4 打磨项**
+   - Vditor chunk 分包（`manualChunks`，当前 Dashboard chunk 529KB / 主 chunk 1.2MB 偏大）
+   - 列表虚拟滚动（`vue-virtual-scroller`，长列表场景）
+   - reduced-motion 全面应用（部分组件已覆盖，需全量化）
+   - 375px / 横屏 / 键盘可达性回归测试
+   - 双主题对比度量化验证（WCAG AA，可接 axe-core / Lighthouse CI）
+   - skip-link 补齐、heading 层级审查
 
-3. **NoteEdit 自动保存与防护**
-   - 草稿自动保存（localStorage + 节流 30s）
-   - Ctrl+S 手动保存
-   - 离开页面确认（`beforeRouteLeave`）
-
-4. **搜索高亮**
-   - 列表结果中对关键词标黄
-
-5. **M4 打磨项**
-   - Vditor chunk 分包（`manualChunks`）
-   - 列表虚拟滚动（`vue-virtual-scroller`）
-   - reduced-motion 全面应用
-   - 375px / 横屏 / 键盘可达性回归
-   - 双主题对比度验证（WCAG AA）
-
-6. **M5 部署**
+2. **M5 部署**
    - `vite build` 产物 + Nginx SPA fallback 配置
    - Uvicorn + Gunicorn 启动脚本
    - SQLite WAL checkpoint + cron 备份脚本
+   - 监控接入

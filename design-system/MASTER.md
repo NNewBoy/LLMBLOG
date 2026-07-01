@@ -318,10 +318,10 @@
 | TagCloud | `views/front/Tags.vue` | ✅ | |
 | Timeline | `views/front/Timeline.vue` | ✅ | |
 | SearchOverlay | `AppNavbar.vue` 内嵌 | ✅ | 移动端全屏 |
-| TableOfContents | — | ⬜ | NoteDetail 待开发 |
-| BackToTop | — | ⬜ | NoteDetail 待开发 |
-| ReadingProgress | — | ⬜ | NoteDetail 待开发 |
-| CommentItem / CommentComposer | — | ⬜ | 后端 API 就绪，前台组件未接入 |
+| TableOfContents | `views/front/NoteDetail.vue` 内嵌（sticky 侧栏 + 滚动高亮 + 平滑滚动） | ✅ | 移动端 <1024px 隐藏 |
+| BackToTop | `views/front/NoteDetail.vue` 内嵌（FAB + Intersection） | ✅ | 滚动 >400px 显示 |
+| ReadingProgress | `views/front/NoteDetail.vue` 内嵌（顶部进度条） | ✅ | 基于 scroll 百分比 |
+| CommentItem / CommentComposer | `components/CommentSection.vue`（2 级嵌套 + 蜜罐 + 点赞 + 回复） | ✅ | 接入 NoteDetail |
 | ThemeToggle | `components/ThemeToggle.vue` | ✅ | 亮/暗/跟随系统三态 |
 | AdminSidebar | `layouts/AdminLayout.vue` 内嵌 | ✅ | 240px + 移动 Drawer |
 | StatCard | `views/admin/Dashboard.vue` 内嵌 | ✅ | |
@@ -345,8 +345,8 @@
 
 ### 12.4 后续设计债务
 
-1. NoteDetail 一组增强组件（TOC / BackToTop / ReadingProgress / 代码复制 / 图片预览 / 评论区）需按本设计系统规格实现。
-2. Dashboard ECharts 主题需基于 `variables.css` 令牌派生调色板，确保双主题切换时图表色同步。
-3. reduced-motion 全量化：所有 transition / animation 包裹媒体查询。
-4. skip-link、heading 层级审查、对比度自动化验证（接入 axe-core 或 Lighthouse CI）。
-5. Vditor chunk 分包 + 列表虚拟滚动，落地 §5 性能规则。
+1. Dashboard ECharts 主题已通过 `MutationObserver` 监听 `data-theme` 切换并刷新配色，调色板基于 `variables.css` 令牌派生。
+2. reduced-motion 全量化：NoteDetail / Dashboard / CommentSection 已覆盖，剩余组件需统一包裹 `@media (prefers-reduced-motion: reduce)`。
+3. skip-link、heading 层级审查、对比度自动化验证（接入 axe-core 或 Lighthouse CI）。
+4. Vditor chunk 分包（`manualChunks`）+ 列表虚拟滚动，落地 §5 性能规则。
+5. 375px / 横屏 / 键盘可达性回归测试。

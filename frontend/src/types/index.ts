@@ -96,3 +96,15 @@ export interface DayPoint {
   pv: number
   uv: number
 }
+
+export interface TerminalPoint {
+  name: string
+  value: number
+}
+
+export interface TopNote {
+  id: number
+  title: string
+  slug: string
+  view_count: number
+}
