@@ -15,4 +15,23 @@ export default defineConfig({
             '/uploads': { target: 'http://127.0.0.1:8000', changeOrigin: true },
         },
     },
+    build: {
+        rollupOptions: {
+            output: {
+                manualChunks: function (id) {
+                    if (id.includes('node_modules')) {
+                        if (id.includes('vditor'))
+                            return 'vditor';
+                        if (id.includes('echarts') || id.includes('zrender'))
+                            return 'echarts';
+                        if (id.includes('element-plus') || id.includes('@element-plus'))
+                            return 'element-plus';
+                        if (id.includes('lucide-vue-next') || id.includes('lucide'))
+                            return 'lucide';
+                        return 'vendor';
+                    }
+                },
+            },
+        },
+    },
 });

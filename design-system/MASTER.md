@@ -337,16 +337,18 @@
 
 | 类别 | 状态 | 说明 |
 | --- | --- | --- |
-| 视觉质量 | 🚧 | 全程语义令牌 ✅；玻璃层叠加 ≤2 ✅；图标统一 Lucide ✅ |
-| 交互 | 🚧 | 触控目标 / 焦点环基本到位；微交互时长符合令牌；部分组件未应用 reduced-motion |
-| 明暗主题 | 🚧 | 令牌双主题成对 ✅；具体页面对比度未做 WCAG AA 量化验证 |
-| 布局 | 🚧 | 移动优先已落实；375px / 横屏未做完整回归 |
-| 可访问性 | 🚧 | 表单 label / aria-live 由 Element Plus 默认提供；skip-link 未加；颜色非唯一指示未全面核查 |
+| 视觉质量 | ✅ | 全程语义令牌 ✅；玻璃层叠加 ≤2 ✅；图标统一 Lucide ✅ |
+| 交互 | ✅ | 触控目标 / 焦点环到位；微交互时长符合令牌；reduced-motion 全量化（`variables.css` 全局媒体查询） |
+| 明暗主题 | ✅ | 令牌双主题成对 ✅；亮色 accent 调至 indigo-600（白字 6.3:1）通过 WCAG AA；暗色主题原值达标 |
+| 布局 | 🚧 | 移动优先已落实；375px / 横屏未做完整手动回归 |
+| 可访问性 | 🚧 | 表单 label / aria-live 由 Element Plus 提供；skip-link 已加（双布局）；icon-only 按钮 aria-label 齐全；heading 层级待逐页核查；颜色非唯一指示未全面核查 |
 
 ### 12.4 后续设计债务
 
-1. Dashboard ECharts 主题已通过 `MutationObserver` 监听 `data-theme` 切换并刷新配色，调色板基于 `variables.css` 令牌派生。
-2. reduced-motion 全量化：NoteDetail / Dashboard / CommentSection 已覆盖，剩余组件需统一包裹 `@media (prefers-reduced-motion: reduce)`。
-3. skip-link、heading 层级审查、对比度自动化验证（接入 axe-core 或 Lighthouse CI）。
-4. Vditor chunk 分包（`manualChunks`）+ 列表虚拟滚动，落地 §5 性能规则。
-5. 375px / 横屏 / 键盘可达性回归测试。
+1. Dashboard ECharts 主题已通过 `MutationObserver` 监听 `data-theme` 切换并刷新配色，调色板基于 `variables.css` 令牌派生。✅
+2. reduced-motion 已全量化：`variables.css` 末尾全局 `@media (prefers-reduced-motion: reduce)` 将所有动画/过渡降至 0.01ms，单一拦截点覆盖全部组件。✅
+3. 主题对比度：亮色 `--accent` 调至 indigo-600 `#4f46e5`，白字对比 6.3:1 通过 WCAG AA；暗色主题原值达标。✅
+4. skip-link 已加至 FrontLayout / AdminLayout；heading 层级逐页核查待办。
+5. 375px / 横屏 / 键盘可达性手动回归测试待办。
+6. 对比度自动化验证（接入 axe-core / Lighthouse CI）待办。
+7. Vite manualChunks 已分包（vditor/echarts/element-plus 独立 chunk）；虚拟滚动决策不引入（分页覆盖长列表）。✅

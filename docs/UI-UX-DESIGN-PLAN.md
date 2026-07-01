@@ -283,7 +283,7 @@
 | M1 基础 | 主题令牌、`.glass`、布局（FrontLayout/AdminLayout）、顶部栏、Drawer、ThemeToggle、Toast、Skeleton、EmptyState、路由守卫登录页 | ✅ | `variables.css` + `glass.css` + `element-overrides.css` 落地；AppNavbar/AdminLayout 含移动 Drawer；ThemeToggle 含跟随系统；ElMessage 充当 Toast；Skeleton/EmptyState 由 Element Plus 提供；路由守卫 `requiresAuth` + 401 重定向 |
 | M2 前台 | NoteCard、首页、标签云页、时间线页、搜索弹层、详情页（TOC/BackToTop/ReadingProgress/代码复制/图片预览）、评论区 | ✅ | 首页/标签云/时间线/搜索弹层 ✅；NoteDetail 已接入 Vditor.preview 渲染 + TOC 滚动高亮 + 阅读进度条 + 回顶 FAB + 代码块复制 + 图片懒加载/灯箱 + 上下篇导航 + 评论区（CommentSection）；搜索页关键词高亮 |
 | M3 后台 | AdminLayout、Dashboard（StatCard+图表）、笔记列表+编辑（Vditor+自动保存）、图片管理、标签管理、评论管理、系统设置 | ✅ | AdminLayout/笔记 CRUD/图片/标签/评论/设置 ✅；Dashboard 已接入 ECharts（访客趋势折线/终端分布饼/Top 笔记条形 + 三态 + 主题联动）；NoteEdit 已接 Vditor + 自动保存(localStorage 30s 节流) + Ctrl/S + 离开确认 |
-| M4 打磨 | 动效错峰、虚拟滚动、可访问性扫描、深色对比验证、375px/横屏测试、reduced-motion、性能（懒加载/分包） | ⬜ | `prefers-reduced-motion` 令牌已就位但未全面应用；Vditor 仍为整块 chunk，未分包；虚拟滚动未接入 |
+| M4 打磨 | 动效错峰、虚拟滚动、可访问性扫描、深色对比验证、375px/横屏测试、reduced-motion、性能（懒加载/分包） | 🚧 | 性能：Vite manualChunks 分包✅（主入口 1.2MB→9KB）；动效：reduced-motion 全量化✅（`variables.css` 全局媒体查询）；可访问性：skip-link✅ + aria-label✅ + 对比度调至 WCAG AA✅（亮色 accent→indigo-600）；安全：后端安全响应头✅。**未完成**：虚拟滚动（分页覆盖，决策不引入）、375px/横屏手动回归、axe-core/Lighthouse CI |
 | M5 上线 | 打包、Nginx、备份、监控 | ⬜ | 待 M4 完成后产出部署脚本与配置 |
 
 ---
@@ -328,13 +328,13 @@
 
 > M2 / M3 核心功能已全部落地。剩余项归入 M4 / M5。
 
-1. **M4 打磨项**
-   - Vditor chunk 分包（`manualChunks`，当前 Dashboard chunk 529KB / 主 chunk 1.2MB 偏大）
-   - 列表虚拟滚动（`vue-virtual-scroller`，长列表场景）
-   - reduced-motion 全面应用（部分组件已覆盖，需全量化）
-   - 375px / 横屏 / 键盘可达性回归测试
-   - 双主题对比度量化验证（WCAG AA，可接 axe-core / Lighthouse CI）
-   - skip-link 补齐、heading 层级审查
+1. **M4 剩余打磨项**
+   - 375px / 横屏 / 键盘可达性回归测试（手动）
+   - 双主题对比度自动化验证（接入 axe-core / Lighthouse CI）
+   - skip-link、heading 层级审查（skip-link 已加，heading 层级待逐页核查）
+
+> M4 已完成项：Vite manualChunks 分包（vditor/echarts/element-plus 独立 chunk）、reduced-motion 全量化（`variables.css` 全局媒体查询）、后端安全响应头中间件（CSP/X-Frame-Options/COOP/Permissions-Policy）、skip-link（双布局）、主题对比度调整（亮色 accent→indigo-600，通过 WCAG AA）。
+> 虚拟滚动决策不引入：分页（默认 10/页）已覆盖长列表场景。
 
 2. **M5 部署**
    - `vite build` 产物 + Nginx SPA fallback 配置

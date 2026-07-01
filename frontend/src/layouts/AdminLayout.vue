@@ -34,6 +34,7 @@ function logout() {
 </script>
 
 <template>
+  <a href="#main-content" class="skip-link">跳到主内容</a>
   <div class="admin-shell">
     <aside class="admin-sidebar glass" :class="{ open: drawerOpen }">
       <RouterLink to="/admin/dashboard" class="admin-brand">
@@ -85,6 +86,24 @@ function logout() {
 </template>
 
 <style scoped>
+.skip-link {
+  position: fixed;
+  top: -100px;
+  left: var(--sp-3);
+  z-index: var(--z-toast);
+  padding: var(--sp-2) var(--sp-4);
+  background: var(--accent);
+  color: var(--accent-on);
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  font-size: var(--fs-sm);
+  transition: top var(--dur-fast) var(--ease-out);
+}
+.skip-link:focus {
+  top: var(--sp-3);
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
 .admin-shell {
   display: flex;
   min-height: 100vh;

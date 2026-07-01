@@ -12,9 +12,9 @@
   --text: #1a1f2e;
   --text-secondary: #4a5568;
   --text-disabled: #9ca3af;
-  --accent: #6366f1;
-  --accent-hover: #4f46e5;
-  --accent-soft: rgba(99, 102, 241, 0.12);
+  --accent: #4f46e5;
+  --accent-hover: #4338ca;
+  --accent-soft: rgba(79, 70, 229, 0.12);
   --accent-on: #ffffff;
   --success: #16a34a;
   --warning: #d97706;
@@ -102,4 +102,16 @@
   --z-toc: 60;
   --z-modal: 80;
   --z-toast: 1000;
+}
+
+/* ===== reduced-motion 全量化：用户偏好减少动效时禁用所有过渡/动画 ===== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

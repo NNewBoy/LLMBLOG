@@ -222,7 +222,7 @@ python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 4
 | M1 基础架构 | ✅ | 脚手架、主题系统、布局、路由守卫、登录、通用组件 |
 | M2 内容前台 | ✅ | 首页 / 标签云 / 时间线 / 搜索（含关键词高亮）；NoteDetail 已接入 Markdown 渲染（Vditor.preview）/ TOC 滚动高亮 / 阅读进度条 / 回顶 / 代码块复制 / 图片懒加载+灯箱 / 上下篇导航 / 评论区（2 级嵌套 + 蜜罐 + 点赞 + 回复） |
 | M3 后台管理 | ✅ | 笔记 CRUD / 图片 / 标签 / 评论 / 设置；Dashboard 已接入 ECharts（访客趋势折线 / 终端分布饼 / Top 笔记条形 + 空/载/错三态 + 主题联动 + 7/30/90 天切换）；NoteEdit 已接入自动保存（localStorage 30s 节流）+ Ctrl/⌘+S + 离开确认 |
-| M4 优化打磨 | ⬜ | Vditor 分包、虚拟滚动、reduced-motion 全量化、可访问性回归 |
+| M4 优化打磨 | 🚧 | 性能：Vite manualChunks 分包（vditor/echarts/element-plus 独立 chunk，主入口 1.2MB→9KB）✅；安全：后端安全响应头中间件（CSP/X-Frame-Options/COOP/Permissions-Policy）✅；动效：reduced-motion 全量化✅；可访问性：skip-link + aria-label + 亮色 accent 调至 indigo-600 通过 WCAG AA✅。剩余：375px/横屏手动回归、axe-core/Lighthouse CI 自动化（虚拟滚动经评估不引入，分页已覆盖） |
 | M5 部署上线 | ⬜ | 打包脚本、Nginx 配置、备份脚本 |
 
 详细落地情况见 `SPEC.md` 附录 B 与 `docs/UI-UX-DESIGN-PLAN.md` §9。

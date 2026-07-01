@@ -12,6 +12,7 @@ const showSidebar = computed(() => !route.name || route.name !== 'note-detail')
 </script>
 
 <template>
+  <a href="#main-content" class="skip-link">跳到主内容</a>
   <AppNavbar />
   <main id="main-content" class="layout-main">
     <div class="layout-container" :class="{ 'has-sidebar': showSidebar }">
@@ -50,6 +51,24 @@ const showSidebar = computed(() => !route.name || route.name !== 'note-detail')
 </template>
 
 <style scoped>
+.skip-link {
+  position: fixed;
+  top: -100px;
+  left: var(--sp-3);
+  z-index: var(--z-toast);
+  padding: var(--sp-2) var(--sp-4);
+  background: var(--accent);
+  color: var(--accent-on);
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  font-size: var(--fs-sm);
+  transition: top var(--dur-fast) var(--ease-out);
+}
+.skip-link:focus {
+  top: var(--sp-3);
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
 .layout-main {
   padding-top: var(--navbar-h);
   min-height: 100vh;

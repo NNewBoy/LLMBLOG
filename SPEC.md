@@ -591,7 +591,7 @@ settings (单行配置表)
 | M1 基础架构 | ✅ | 前后端骨架、主题、布局、路由、鉴权全部落地 |
 | M2 内容前台 | ✅ | 首页/标签/时间线/搜索可用；NoteDetail 已接入 Markdown 渲染 / TOC / 阅读进度 / 回顶 / 代码复制 / 图片灯箱 / 上下篇 / 评论区；搜索关键词高亮 |
 | M3 后台管理 | ✅ | 笔记/图片/标签/评论/设置可用；Dashboard 已接入 ECharts（访客趋势/终端分布/Top 笔记）；NoteEdit 已接入自动保存/Ctrl+S/离开确认 |
-| M4 优化打磨 | ⬜ | 性能（Vditor 分包、虚拟滚动）、安全加固、动效打磨、可访问性回归 |
+| M4 优化打磨 | 🚧 | 性能：Vite manualChunks 分包✅（vditor/echarts/element-plus 独立 chunk，主入口 1.2MB→9KB）；安全：后端安全响应头中间件✅（CSP/X-Frame-Options/COOP/Permissions-Policy）；动效：reduced-motion 全量化✅；可访问性：skip-link✅ / aria-label✅ / 主题对比度调至 WCAG AA✅。**未完成**：虚拟滚动（分页已覆盖长列表，决策不引入）、375px/横屏手动回归、axe-core/Lighthouse CI 自动化 |
 | M5 部署上线 | ⬜ | 打包脚本、Nginx 配置、备份脚本未产出 |
 
 ### B.5 关键技术决策记录
@@ -603,3 +603,8 @@ settings (单行配置表)
 5. **Vditor 动态导入**：`VditorEditor.vue` 用 `import('vditor')` 懒加载，减小首屏体积（M4 仍需进一步分包）。
 6. **SQLite WAL**：`database.py` 启动时执行 `PRAGMA journal_mode=WAL; foreign_keys=ON;`，提升并发读写。
 7. **CORS / 静态资源**：`main.py` 挂载 `/uploads` 静态目录，CORS 允许列表通过 `CORS_ORIGINS` 配置。
+8. **安全响应头（M4）**：`SecurityHeadersMiddleware` 在所有响应附加 `X-Content-Type-Options / X-Frame-Options:DENY / Referrer-Policy / Permissions-Policy / COP / CSP`。CSP 允许 `style/script 'unsafe-inline'`（Swagger /docs 与 Element Plus 内联样式所需），`img-src 'self' data: https:`，`frame-ancestors 'none'`。
+9. **Vite manualChunks 分包（M4）**：`vite.config.ts` 按 `vditor / echarts / element-plus / lucide / vendor` 拆分独立 chunk。主入口由 1.2MB 降至 9KB，Element Plus / ECharts / Vditor 各自独立可缓存，Dashboard 页 chunk 由 530KB 降至 7.9KB。
+10. **reduced-motion 全量化（M4）**：`variables.css` 末尾全局 `@media (prefers-reduced-motion: reduce)` 将所有 `animation/transition-duration` 降至 0.01ms，单一拦截点优于逐组件覆盖。
+11. **虚拟滚动决策（M4）**：笔记/评论列表均采用分页（默认 10/页），长列表场景已被分页覆盖；引入 `vue-virtual-scroller` 属过度工程，决策不实现。
+12. **主题对比度（M4）**：亮色 `--accent` 由 indigo-500 `#6366f1`（白字 4.43:1）调至 indigo-600 `#4f46e5`（白字 6.3:1），通过 WCAG AA 正文 4.5:1。暗色主题原值已达标。
