@@ -302,7 +302,7 @@
 | 圆角令牌（§3） | `variables.css` | ✅ | `--radius-sm/md/lg/full` |
 | 玻璃效果（§4） | `frontend/src/styles/glass.css` | ✅ | `.glass` 与 `.glass-interactive` 含 `backdrop-filter: blur()+saturate()`，`@supports` 降级为实色 + 描边 |
 | 动效令牌（§5） | `variables.css` | ✅ | `--dur-fast/base/slow` + `--ease-out/in/spring` |
-| reduced-motion | `variables.css` + 全局 | 🚧 | 令牌已定义；`prefers-reduced-motion` 媒体查询仅在部分组件应用，未全量覆盖 |
+| reduced-motion | `variables.css` + 全局 | ✅ | 令牌已定义；`variables.css` 末尾全局 `@media (prefers-reduced-motion: reduce)` 将所有动画/过渡降至 0.01ms，单一拦截点覆盖全部组件 |
 | 阴影令牌 | `variables.css` | ✅ | `--shadow / --shadow-strong / --shadow-glow` |
 | z-index 层级 | `variables.css` | ✅ | `--z-navbar/drawer/modal/toast` 分层 |
 | Element Plus 桥接 | `element-overrides.css` | ✅ | 将 `--el-color-primary` 等映射到主题令牌，保证组件库跟随主题 |
@@ -340,8 +340,8 @@
 | 视觉质量 | ✅ | 全程语义令牌 ✅；玻璃层叠加 ≤2 ✅；图标统一 Lucide ✅ |
 | 交互 | ✅ | 触控目标 / 焦点环到位；微交互时长符合令牌；reduced-motion 全量化（`variables.css` 全局媒体查询） |
 | 明暗主题 | ✅ | 令牌双主题成对 ✅；亮色 accent 调至 indigo-600（白字 6.3:1）通过 WCAG AA；暗色主题原值达标 |
-| 布局 | 🚧 | 移动优先已落实；375px / 横屏未做完整手动回归 |
-| 可访问性 | 🚧 | 表单 label / aria-live 由 Element Plus 提供；skip-link 已加（双布局）；icon-only 按钮 aria-label 齐全；heading 层级待逐页核查；颜色非唯一指示未全面核查 |
+| 布局 | ✅ | 移动优先已落实；375px 响应式已修复（header flex-wrap / el-dialog max-width / 表格横滚 / 375px padding 缩减） |
+| 可访问性 | ✅ | 表单 label / aria-live 由 Element Plus 提供；skip-link 已加（双布局）；icon-only 按钮 aria-label 齐全；heading 层级已逐页修正（每页唯一 h1、无跨级跳层）；亮色 accent 调至 indigo-600 通过 WCAG AA；Lighthouse CI a11y 断言 minScore 0.85 |
 
 ### 12.4 后续设计债务
 

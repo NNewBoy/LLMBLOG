@@ -36,7 +36,7 @@ async function remove(n: NoteSummary) {
 <template>
   <div>
     <div class="head">
-      <h2 class="page-title">笔记管理</h2>
+      <h1 class="page-title">笔记管理</h1>
       <button class="primary-btn" @click="router.push('/admin/notes/new')">
         <Plus :size="18" /> 新建笔记
       </button>
@@ -72,6 +72,8 @@ async function remove(n: NoteSummary) {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: var(--sp-3);
   margin-bottom: var(--sp-5);
 }
 .page-title {

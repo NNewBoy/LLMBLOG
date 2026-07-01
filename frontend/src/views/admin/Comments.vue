@@ -34,7 +34,7 @@ async function remove(c: any) {
 
 <template>
   <div>
-    <h2 class="page-title">评论管理</h2>
+    <h1 class="page-title">评论管理</h1>
     <GlassCard padding="0">
       <el-table :data="list" v-loading="loading" style="width: 100%">
         <el-table-column prop="note_title" label="笔记" min-width="160" />

@@ -23,7 +23,7 @@ function fmt(d: string) {
     <div v-if="note.is_pinned" class="pin">
       <Pin :size="14" /> 置顶
     </div>
-    <h3 class="title">{{ note.title }}</h3>
+    <h2 class="title">{{ note.title }}</h2>
     <div class="meta">
       <span class="tabular">{{ fmt(note.created_at) }}</span>
       <span class="dot"><Eye :size="14" /> <span class="tabular">{{ note.view_count }}</span></span>

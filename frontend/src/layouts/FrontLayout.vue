@@ -35,12 +35,12 @@ const showSidebar = computed(() => !route.name || route.name !== 'note-detail')
             <div v-else class="avatar avatar-placeholder">
               {{ (settings.settings.blogger_name || 'B').slice(0, 1) }}
             </div>
-            <h3 class="name">{{ settings.settings.blogger_name }}</h3>
+            <h2 class="name">{{ settings.settings.blogger_name }}</h2>
             <p class="desc">{{ settings.settings.blogger_desc }}</p>
           </div>
         </GlassCard>
         <GlassCard padding="20px">
-          <h4 class="widget-title">关于</h4>
+          <h2 class="widget-title">关于</h2>
           <p class="widget-text">
             欢迎来到 {{ settings.settings.site_name }}。这里记录学习与思考。
           </p>

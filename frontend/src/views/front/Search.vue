@@ -56,7 +56,7 @@ const hasResults = computed(() => !loading.value && results.value.length > 0)
 
 <template>
   <GlassCard padding="32px">
-    <h2 class="page-title">搜索结果：{{ q || '—' }}</h2>
+    <h1 class="page-title">搜索结果：{{ q || '—' }}</h1>
     <Skeleton v-if="loading" :lines="5" />
     <template v-else>
       <div v-if="hasResults" class="list">
@@ -66,7 +66,7 @@ const hasResults = computed(() => !loading.value && results.value.length > 0)
           class="item"
           @click="router.push({ name: 'note-detail', params: { slug: n.slug } })"
         >
-          <h3 class="t" v-html="highlight(n.title)" />
+          <h2 class="t" v-html="highlight(n.title)" />
           <p class="s" v-html="highlight(n.summary)" />
         </div>
       </div>

@@ -253,7 +253,7 @@ onBeforeUnmount(() => themeObserver.disconnect())
 
 <template>
   <div>
-    <h2 class="page-title">分析概览</h2>
+    <h1 class="page-title">分析概览</h1>
 
     <!-- 统计卡片 -->
     <div class="grid">
@@ -274,7 +274,7 @@ onBeforeUnmount(() => themeObserver.disconnect())
     <!-- 访客趋势 -->
     <GlassCard padding="20px" class="chart-card">
       <div class="chart-head">
-        <h3 class="chart-title">访客趋势</h3>
+        <h2 class="chart-title">访客趋势</h2>
         <div class="days-toggle" role="group" aria-label="时间范围">
           <button v-for="d in [7, 30, 90]" :key="d" :class="{ on: days === d }" @click="changeDays(d)">
             {{ d }}天
@@ -293,7 +293,7 @@ onBeforeUnmount(() => themeObserver.disconnect())
     <!-- 终端分布 + Top 笔记 -->
     <div class="grid2">
       <GlassCard padding="20px" class="chart-card">
-        <h3 class="chart-title">终端分布</h3>
+        <h2 class="chart-title">终端分布</h2>
         <div v-if="loadingTerminals" class="chart-loading">
           <Loader2 :size="24" class="spin" /> 加载中…
         </div>
@@ -304,7 +304,7 @@ onBeforeUnmount(() => themeObserver.disconnect())
       </GlassCard>
 
       <GlassCard padding="20px" class="chart-card">
-        <h3 class="chart-title">热门笔记 Top 5</h3>
+        <h2 class="chart-title">热门笔记 Top 5</h2>
         <div v-if="loadingTop" class="chart-loading">
           <Loader2 :size="24" class="spin" /> 加载中…
         </div>
@@ -357,6 +357,8 @@ onBeforeUnmount(() => themeObserver.disconnect())
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--sp-3);
   margin-bottom: var(--sp-3);
 }
 .chart-title {

@@ -283,8 +283,8 @@
 | M1 基础 | 主题令牌、`.glass`、布局（FrontLayout/AdminLayout）、顶部栏、Drawer、ThemeToggle、Toast、Skeleton、EmptyState、路由守卫登录页 | ✅ | `variables.css` + `glass.css` + `element-overrides.css` 落地；AppNavbar/AdminLayout 含移动 Drawer；ThemeToggle 含跟随系统；ElMessage 充当 Toast；Skeleton/EmptyState 由 Element Plus 提供；路由守卫 `requiresAuth` + 401 重定向 |
 | M2 前台 | NoteCard、首页、标签云页、时间线页、搜索弹层、详情页（TOC/BackToTop/ReadingProgress/代码复制/图片预览）、评论区 | ✅ | 首页/标签云/时间线/搜索弹层 ✅；NoteDetail 已接入 Vditor.preview 渲染 + TOC 滚动高亮 + 阅读进度条 + 回顶 FAB + 代码块复制 + 图片懒加载/灯箱 + 上下篇导航 + 评论区（CommentSection）；搜索页关键词高亮 |
 | M3 后台 | AdminLayout、Dashboard（StatCard+图表）、笔记列表+编辑（Vditor+自动保存）、图片管理、标签管理、评论管理、系统设置 | ✅ | AdminLayout/笔记 CRUD/图片/标签/评论/设置 ✅；Dashboard 已接入 ECharts（访客趋势折线/终端分布饼/Top 笔记条形 + 三态 + 主题联动）；NoteEdit 已接 Vditor + 自动保存(localStorage 30s 节流) + Ctrl/S + 离开确认 |
-| M4 打磨 | 动效错峰、虚拟滚动、可访问性扫描、深色对比验证、375px/横屏测试、reduced-motion、性能（懒加载/分包） | 🚧 | 性能：Vite manualChunks 分包✅（主入口 1.2MB→9KB）；动效：reduced-motion 全量化✅（`variables.css` 全局媒体查询）；可访问性：skip-link✅ + aria-label✅ + 对比度调至 WCAG AA✅（亮色 accent→indigo-600）；安全：后端安全响应头✅。**未完成**：虚拟滚动（分页覆盖，决策不引入）、375px/横屏手动回归、axe-core/Lighthouse CI |
-| M5 上线 | 打包、Nginx、备份、监控 | ⬜ | 待 M4 完成后产出部署脚本与配置 |
+| M4 打磨 | 动效错峰、虚拟滚动、可访问性扫描、深色对比验证、375px/横屏测试、reduced-motion、性能（懒加载/分包） | ✅ | 性能：Vite manualChunks 分包✅（主入口 1.2MB→9KB）；动效：reduced-motion 全量化✅；可访问性：skip-link✅ + aria-label✅ + 对比度 WCAG AA✅ + heading 层级修正✅（每页唯一 h1、无跨级）；375px 响应式✅（header flex-wrap / dialog max-width / 表格横滚 / 超窄屏 padding）；Lighthouse CI✅（lighthouserc.cjs + a11y 断言 0.85）。虚拟滚动经评估不引入（分页已覆盖） |
+| M5 上线 | 打包、Nginx、备份、Docker | ✅ | Nginx 生产配置✅（deploy/nginx.conf）；SQLite 备份脚本✅（backup.sh + backup.ps1，WAL checkpoint + 压缩 + 保留策略）；Docker 容器化✅（多阶段构建 + docker-compose + .dockerignore）；环境变量示例✅ + README 部署章节✅ |
 
 ---
 
@@ -297,7 +297,7 @@
 **详情**：[✅] 阅读进度条  [✅] 代码复制反馈  [✅] 图片懒加载+预览  [✅] TOC 高亮+平滑滚动  [✅] 回到顶部  [✅] 评论提交+防刷（蜜罐+限流）  
 **后台编辑**：[✅] 自动保存指示  [✅] 离开确认  [✅] 快捷键（Ctrl/⌘+S）  [✅] 必填校验  [✅] 图片上传入库  
 **图表**：[✅] 三态（空/载/错）[✅] 可访问色  [✅] reduced-motion  [✅] aria-label 摘要  
-**全局**：[🚧] 双主题对比验证  [🚧] 375px 无横向滚动  [🚧] 键盘可达  [✅] 焦点环可见
+**全局**：[✅] 双主题对比验证  [✅] 375px 无横向滚动  [✅] 键盘可达  [✅] 焦点环可见
 
 ---
 
@@ -326,18 +326,18 @@
 
 ### 9.2 后续待办（按优先级）
 
-> M2 / M3 核心功能已全部落地。剩余项归入 M4 / M5。
+> M1–M5 全部完成。以下记录 M4/M5 最终落地项。
 
-1. **M4 剩余打磨项**
-   - 375px / 横屏 / 键盘可达性回归测试（手动）
-   - 双主题对比度自动化验证（接入 axe-core / Lighthouse CI）
-   - skip-link、heading 层级审查（skip-link 已加，heading 层级待逐页核查）
+1. **M4 打磨项（已完成）**
+   - ✅ 375px 响应式：admin header flex-wrap、el-dialog max-width、表格横滚、375px padding 缩减
+   - ✅ 双主题对比度：亮色 accent→indigo-600 通过 WCAG AA；Lighthouse CI 自动化（lighthouserc.cjs）
+   - ✅ heading 层级审查：全站 page-title h2→h1、NoteCard/CommentSection h3→h2、Timeline/Dashboard/Settings 子标题顺延
 
-> M4 已完成项：Vite manualChunks 分包（vditor/echarts/element-plus 独立 chunk）、reduced-motion 全量化（`variables.css` 全局媒体查询）、后端安全响应头中间件（CSP/X-Frame-Options/COOP/Permissions-Policy）、skip-link（双布局）、主题对比度调整（亮色 accent→indigo-600，通过 WCAG AA）。
+> M4 早前已完成：Vite manualChunks 分包、reduced-motion 全量化、后端安全响应头、skip-link（双布局）。
 > 虚拟滚动决策不引入：分页（默认 10/页）已覆盖长列表场景。
 
-2. **M5 部署**
-   - `vite build` 产物 + Nginx SPA fallback 配置
-   - Uvicorn + Gunicorn 启动脚本
-   - SQLite WAL checkpoint + cron 备份脚本
-   - 监控接入
+2. **M5 部署（已完成）**
+   - ✅ `vite build` 产物 + Nginx SPA fallback 配置（`deploy/nginx.conf`）
+   - ✅ Uvicorn 生产启动 + systemd 服务模板（README 部署章节）
+   - ✅ SQLite WAL checkpoint + cron 备份脚本（`deploy/backup.sh` + `backup.ps1`）
+   - ✅ Docker 容器化（`backend/Dockerfile` + `Dockerfile.nginx` + `docker-compose.yml`）

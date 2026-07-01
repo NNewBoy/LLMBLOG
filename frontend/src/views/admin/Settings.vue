@@ -40,10 +40,10 @@ async function save() {
 
 <template>
   <div>
-    <h2 class="page-title">系统设置</h2>
+    <h1 class="page-title">系统设置</h1>
     <div class="sections">
       <section class="sec">
-        <h3 class="sec-title">博主信息</h3>
+        <h2 class="sec-title">博主信息</h2>
         <el-form label-width="100px">
           <el-form-item label="博主名称"><el-input v-model="form.blogger_name" /></el-form-item>
           <el-form-item label="博主描述"><el-input v-model="form.blogger_desc" /></el-form-item>
@@ -51,7 +51,7 @@ async function save() {
         </el-form>
       </section>
       <section class="sec">
-        <h3 class="sec-title">站点信息</h3>
+        <h2 class="sec-title">站点信息</h2>
         <el-form label-width="100px">
           <el-form-item label="网站名称"><el-input v-model="form.site_name" /></el-form-item>
           <el-form-item label="网站描述"><el-input v-model="form.site_desc" /></el-form-item>
@@ -59,7 +59,7 @@ async function save() {
         </el-form>
       </section>
       <section class="sec">
-        <h3 class="sec-title">备案信息</h3>
+        <h2 class="sec-title">备案信息</h2>
         <el-form label-width="120px">
           <el-form-item label="IPC 备案号"><el-input v-model="form.icp_no" /></el-form-item>
           <el-form-item label="IPC 备案网址"><el-input v-model="form.icp_url" /></el-form-item>
@@ -69,7 +69,7 @@ async function save() {
         </el-form>
       </section>
       <section class="sec">
-        <h3 class="sec-title">安全</h3>
+        <h2 class="sec-title">安全</h2>
         <el-form label-width="120px">
           <el-form-item label="修改密码"><el-input v-model="form.new_password" type="password" placeholder="留空不修改" /></el-form-item>
         </el-form>

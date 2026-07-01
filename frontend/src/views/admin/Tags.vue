@@ -53,7 +53,7 @@ async function remove(t: Tag) {
 <template>
   <div>
     <div class="head">
-      <h2 class="page-title">标签管理</h2>
+      <h1 class="page-title">标签管理</h1>
       <button class="primary-btn" @click="openNew"><Plus :size="18" /> 新建标签</button>
     </div>
     <GlassCard padding="0">
@@ -95,6 +95,8 @@ async function remove(t: Tag) {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: var(--sp-3);
   margin-bottom: var(--sp-5);
 }
 .page-title {

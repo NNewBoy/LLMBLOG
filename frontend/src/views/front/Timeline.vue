@@ -24,14 +24,14 @@ function fmt(d: string) {
 
 <template>
   <GlassCard padding="32px">
-    <h2 class="page-title">时间线</h2>
+    <h1 class="page-title">时间线</h1>
     <Skeleton v-if="loading" :lines="6" />
     <template v-else>
       <div v-if="Object.keys(data).length" class="years">
         <section v-for="(months, year) in data" :key="year" class="year">
-          <h3 class="year-title">{{ year }}</h3>
+          <h2 class="year-title">{{ year }}</h2>
           <div v-for="(items, month) in months" :key="month" class="month">
-            <h4 class="month-title">{{ month }} 月</h4>
+            <h3 class="month-title">{{ month }} 月</h3>
             <ul class="items">
               <li v-for="n in items" :key="n.id" @click="router.push({ name: 'note-detail', params: { slug: n.slug } })">
                 <span class="date tabular">{{ fmt(n.created_at) }}</span>

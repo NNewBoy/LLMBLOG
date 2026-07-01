@@ -27,7 +27,7 @@ function fontSize(c: number) {
 
 <template>
   <GlassCard padding="32px">
-    <h2 class="page-title">标签</h2>
+    <h1 class="page-title">标签</h1>
     <div v-if="tags.length" class="cloud">
       <button
         v-for="t in tags"

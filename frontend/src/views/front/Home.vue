@@ -39,6 +39,7 @@ onMounted(() => load(true))
 
 <template>
   <div class="home">
+    <h1 class="sr-only">最新笔记</h1>
     <div v-if="loading" class="list">
       <GlassCard v-for="i in 3" :key="i" padding="24px">
         <Skeleton :lines="4" />

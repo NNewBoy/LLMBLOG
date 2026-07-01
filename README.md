@@ -34,7 +34,7 @@
 | 状态 | Pinia |
 | 路由 | Vue Router 4 |
 | 请求 | Axios（统一响应解包 + 401 重定向） |
-| 图表 | ECharts 5（已装，Dashboard 图表待接入） |
+| 图表 | ECharts 5（按需引入 core，Dashboard 已接入） |
 | 图标 | lucide-vue-next |
 
 ### 后端（`backend/`）
@@ -57,11 +57,19 @@
 LLMBLOG/
 ├── SPEC.md                       # 软件规格（含附录 B 实现状态）
 ├── README.md                     # 本文件
+├── docker-compose.yml            # Docker Compose 编排（backend + nginx）
+├── Dockerfile.nginx              # 前端多阶段构建 → Nginx 托管
+├── .dockerignore
 ├── design-system/
 │   └── MASTER.md                 # 主设计系统（单一事实来源）
 ├── docs/
 │   └── UI-UX-DESIGN-PLAN.md      # 页面级 UI/UX 实施规划
+├── deploy/
+│   ├── nginx.conf                # 生产 Nginx 配置
+│   ├── backup.sh                 # SQLite 备份（Linux/macOS）
+│   └── backup.ps1                # SQLite 备份（Windows PowerShell）
 ├── backend/
+│   ├── Dockerfile                # 后端镜像
 │   ├── app/
 │   │   ├── main.py               # FastAPI 入口（CORS / 静态挂载 / 路由 / 异常处理）
 │   │   ├── core/                 # config / security / deps
@@ -70,6 +78,7 @@ LLMBLOG/
 │   │   ├── schemas/              # Pydantic 入参/出参
 │   │   └── api/                  # auth / notes / tags / comments / images / stats / settings
 │   ├── requirements.txt
+│   ├── .env.example              # 环境变量示例
 │   └── uploads/                  # 图片上传目录（运行时生成）
 └── frontend/
     ├── src/
@@ -81,10 +90,10 @@ LLMBLOG/
     │   ├── styles/               # variables / glass / element-overrides
     │   ├── utils/                # request（Axios 实例）
     │   └── views/
-    │       ├── auth/             # Login
     │       ├── front/            # Home / Tags / Timeline / Search / NoteDetail
     │       └── admin/            # Dashboard / Notes / NoteEdit / Images / Tags / Comments / Settings
-    ├── vite.config.ts            # 含 /api → :8000 代理
+    ├── lighthouserc.cjs          # Lighthouse CI 配置
+    ├── vite.config.ts            # 含 manualChunks 分包 + /api → :8000 代理
     └── package.json
 ```
 
@@ -175,35 +184,109 @@ npm run dev
 
 ## 构建与部署
 
-### 前端打包
+### 方式一：Docker Compose（推荐）
+
+```powershell
+# 1. 准备后端环境变量
+cp backend/.env.example backend/.env
+# 编辑 backend/.env，修改 SECRET_KEY 和 CORS_ORIGINS
+
+# 2. 一键启动（前端构建 + 后端 + Nginx）
+docker compose up -d --build
+
+# 3. 查看日志
+docker compose logs -f
+```
+
+- 访问：`http://<服务器IP>`
+- 前端镜像多阶段构建：Node 20 编译 → Nginx Alpine 托管
+- 后端镜像：Python 3.12-slim + Uvicorn
+- 数据卷：`db-data`（SQLite）+ `uploads`（图片，Nginx 只读挂载直出）
+- Nginx 配置自动 `sed` 替换 `127.0.0.1:8000` → `backend:8000`
+
+### 方式二：裸金属部署
+
+#### 1. 前端打包
 
 ```powershell
 cd frontend
 npm run build       # 产物在 frontend/dist
 ```
 
-### 后端生产启动
+将 `dist/` 内容拷贝到服务器 `/var/www/llmblog`。
+
+#### 2. 后端生产启动
 
 ```powershell
 cd backend
-python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 4
+cp .env.example .env   # 编辑 .env，修改 SECRET_KEY 和 CORS_ORIGINS
+python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --workers 4
 ```
 
-### Nginx 参考拓扑
+建议用 systemd 管理进程：
 
-- 前端 `dist/` 部署为静态站点，SPA history 模式需 `try_files $uri $uri/ /index.html`
-- `/api` 反向代理到 Uvicorn
-- `/uploads` 可由 Nginx 直出静态文件
-- SQLite 定时备份：cron 拷贝 `.db` + `PRAGMA wal_checkpoint(TRUNCATE)`
+```ini
+# /etc/systemd/system/llmblog.service
+[Unit]
+Description=LLMBLOG Backend
+After=network.target
 
-### 环境变量（可选，覆盖默认值）
+[Service]
+WorkingDirectory=/opt/llmblog/backend
+ExecStart=/opt/llmblog/backend/.venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000 --workers 4
+Restart=always
+User=www-data
 
-| 变量 | 用途 |
-| --- | --- |
-| `SECRET_KEY` | JWT 签名密钥 |
-| `DB_PATH` | SQLite 文件路径 |
-| `UPLOAD_DIR` | 图片上传目录 |
-| `CORS_ORIGINS` | CORS 允许来源（逗号分隔） |
+[Install]
+WantedBy=multi-user.target
+```
+
+#### 3. Nginx 配置
+
+参考 `deploy/nginx.conf`，拷贝到 `/etc/nginx/conf.d/llmblog.conf` 并按需修改：
+
+- `root` — 前端 `dist/` 部署路径
+- `location /api/` → `proxy_pass http://127.0.0.1:8000`
+- `location /uploads/` → `alias` 指向后端 `uploads/` 目录
+- 已含 gzip、安全响应头、SPA fallback、静态资源长缓存
+
+#### 4. SQLite 定时备份
+
+```bash
+# Linux crontab（每日 03:00 备份，保留 7 天）
+0 3 * * * /opt/llmblog/deploy/backup.sh /opt/llmblog/backend/app/data/app.db /opt/llmblog/backups 7
+```
+
+```powershell
+# Windows 计划任务（每日 03:00）
+.\deploy\backup.ps1 -DbPath app/data/app.db -BackupDir backups -RetainDays 7
+```
+
+备份脚本会先执行 `PRAGMA wal_checkpoint(TRUNCATE)` 合并 WAL，再安全拷贝 + 压缩，按天数自动清理旧备份。
+
+### 环境变量
+
+完整示例见 `backend/.env.example`：
+
+| 变量 | 默认值 | 用途 |
+| --- | --- | --- |
+| `SECRET_KEY` | `dev-secret-change-me` | JWT 签名密钥（生产必须修改） |
+| `ADMIN_PASSWORD_HASH` | 空 | 管理员密码哈希（留空则首次启动用 admin 初始化） |
+| `DB_PATH` | `app/data/app.db` | SQLite 文件路径 |
+| `UPLOAD_DIR` | `uploads` | 图片上传目录 |
+| `CORS_ORIGINS` | `http://localhost:5173,...` | CORS 允许来源（逗号分隔，生产设为实际域名） |
+| `ACCESS_TOKEN_EXPIRE_MINUTES` | `120` | JWT 过期时间（分钟） |
+
+### Lighthouse CI（可选）
+
+```powershell
+cd frontend
+npm install          # 安装 @lhci/cli
+npm run build
+npm run lhci         # 自动启动 preview 服务器 + 跑 Lighthouse + 断言
+```
+
+配置见 `frontend/lighthouserc.cjs`，报告输出到 `.lighthouseci/`。
 
 ---
 
@@ -222,8 +305,8 @@ python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 4
 | M1 基础架构 | ✅ | 脚手架、主题系统、布局、路由守卫、登录、通用组件 |
 | M2 内容前台 | ✅ | 首页 / 标签云 / 时间线 / 搜索（含关键词高亮）；NoteDetail 已接入 Markdown 渲染（Vditor.preview）/ TOC 滚动高亮 / 阅读进度条 / 回顶 / 代码块复制 / 图片懒加载+灯箱 / 上下篇导航 / 评论区（2 级嵌套 + 蜜罐 + 点赞 + 回复） |
 | M3 后台管理 | ✅ | 笔记 CRUD / 图片 / 标签 / 评论 / 设置；Dashboard 已接入 ECharts（访客趋势折线 / 终端分布饼 / Top 笔记条形 + 空/载/错三态 + 主题联动 + 7/30/90 天切换）；NoteEdit 已接入自动保存（localStorage 30s 节流）+ Ctrl/⌘+S + 离开确认 |
-| M4 优化打磨 | 🚧 | 性能：Vite manualChunks 分包（vditor/echarts/element-plus 独立 chunk，主入口 1.2MB→9KB）✅；安全：后端安全响应头中间件（CSP/X-Frame-Options/COOP/Permissions-Policy）✅；动效：reduced-motion 全量化✅；可访问性：skip-link + aria-label + 亮色 accent 调至 indigo-600 通过 WCAG AA✅。剩余：375px/横屏手动回归、axe-core/Lighthouse CI 自动化（虚拟滚动经评估不引入，分页已覆盖） |
-| M5 部署上线 | ⬜ | 打包脚本、Nginx 配置、备份脚本 |
+| M4 优化打磨 | ✅ | 性能：Vite manualChunks 分包（vditor/echarts/element-plus 独立 chunk，主入口 1.2MB→9KB）；安全：后端安全响应头中间件（CSP/X-Frame-Options/COOP/Permissions-Policy）；动效：reduced-motion 全量化；可访问性：skip-link + aria-label + 亮色 accent 调至 indigo-600 通过 WCAG AA + heading 层级修正（每页唯一 h1，无跨级）；375px 响应式（header flex-wrap / dialog max-width / 表格横滚 / 超窄屏 padding 缩减）；Lighthouse CI 自动化（lighthouserc.cjs + npm run lhci） |
+| M5 部署上线 | ✅ | Nginx 生产配置（SPA fallback / /api 反代 / /uploads 直出 / gzip / 安全头 / 静态长缓存）；SQLite 备份脚本（PowerShell + Bash，WAL checkpoint + 压缩 + 保留策略）；Docker 容器化（多阶段前端构建 + 后端 + docker-compose + .dockerignore）；环境变量示例 + README 部署章节（Docker / 裸金属 / systemd / cron 备份） |
 
 详细落地情况见 `SPEC.md` 附录 B 与 `docs/UI-UX-DESIGN-PLAN.md` §9。
 

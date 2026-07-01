@@ -173,7 +173,7 @@ async function save() {
       <ArrowLeft :size="16" /> 返回列表
     </button>
     <div class="head-row">
-      <h2 class="page-title">{{ isEdit ? '编辑笔记' : '新建笔记' }}</h2>
+      <h1 class="page-title">{{ isEdit ? '编辑笔记' : '新建笔记' }}</h1>
       <span v-if="lastAutoSave" class="autosave-hint">
         <Cloud :size="14" /> 草稿已存 {{ lastAutoSave }}
       </span>
@@ -265,6 +265,7 @@ async function save() {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
   margin-top: var(--sp-5);
   gap: var(--sp-3);
 }

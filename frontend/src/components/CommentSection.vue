@@ -137,9 +137,9 @@ onMounted(() => load(true))
 <template>
   <GlassCard padding="28px" class="comments">
     <div class="head">
-      <h3 class="title">
+      <h2 class="title">
         <MessageCircle :size="18" /> 评论 <span class="count tabular">{{ total }}</span>
-      </h3>
+      </h2>
       <div class="sort">
         <button :class="{ on: sort === 'latest' }" @click="switchSort('latest')">最新</button>
         <button :class="{ on: sort === 'hot' }" @click="switchSort('hot')">最热</button>

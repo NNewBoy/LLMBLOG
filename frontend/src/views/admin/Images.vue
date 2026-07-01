@@ -49,7 +49,7 @@ async function copyUrl(img: ImageItem) {
 <template>
   <div>
     <div class="head">
-      <h2 class="page-title">图片管理</h2>
+      <h1 class="page-title">图片管理</h1>
       <button class="primary-btn" @click="fileInput?.click()">
         <Upload :size="18" /> 上传
       </button>
@@ -77,6 +77,7 @@ async function copyUrl(img: ImageItem) {
 .head {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: var(--sp-3);
   margin-bottom: var(--sp-5);
 }

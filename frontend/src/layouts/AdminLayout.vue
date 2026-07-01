@@ -256,4 +256,9 @@ function logout() {
     background: rgba(0, 0, 0, 0.48);
   }
 }
+@media (max-width: 375px) {
+  .admin-content {
+    padding: var(--sp-3);
+  }
+}
 </style>
