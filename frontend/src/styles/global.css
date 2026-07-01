@@ -1,56 +1,74 @@
-* {
-  box-sizing: border-box;
-}
-html,
-body {
-  margin: 0;
-  padding: 0;
-  min-height: 100vh;
-  min-height: 100dvh;
-}
-body {
-  font-family: var(--font-body);
-  font-size: var(--fs-base);
-  line-height: 1.75;
-  color: var(--text);
-  background: var(--bg);
-  -webkit-font-smoothing: antialiased;
-  transition: background var(--dur-slow) var(--ease-out), color var(--dur-slow) var(--ease-out);
-  overflow-x: hidden;
-}
+/* 全局 reset / 元素样式放入 @layer base，
+   使未分层的第三方样式（如 Vditor）优先级高于 base 层，
+   避免全局元素选择器污染 Vditor 官方深/浅色样式 */
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+  html,
+  body {
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
+  body {
+    font-family: var(--font-body);
+    font-size: var(--fs-base);
+    line-height: 1.75;
+    color: var(--text);
+    background: var(--bg);
+    -webkit-font-smoothing: antialiased;
+    transition: background var(--dur-slow) var(--ease-out), color var(--dur-slow) var(--ease-out);
+    overflow-x: hidden;
+  }
 
-/* 背景光斑 */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  background:
-    radial-gradient(circle at 12% 18%, var(--bg-blob-1) 0, transparent 38%),
-    radial-gradient(circle at 88% 22%, var(--bg-blob-2) 0, transparent 36%),
-    radial-gradient(circle at 70% 85%, var(--bg-blob-3) 0, transparent 40%);
-  opacity: 0.55;
-}
+  /* 背景光斑 */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+      radial-gradient(circle at 12% 18%, var(--bg-blob-1) 0, transparent 38%),
+      radial-gradient(circle at 88% 22%, var(--bg-blob-2) 0, transparent 36%),
+      radial-gradient(circle at 70% 85%, var(--bg-blob-3) 0, transparent 40%);
+    opacity: 0.55;
+  }
 
-a {
-  color: var(--accent);
-  text-decoration: none;
-  transition: color var(--dur-fast) var(--ease-out);
-}
-a:hover {
-  color: var(--accent-hover);
-}
+  a {
+    color: var(--accent);
+    text-decoration: none;
+    transition: color var(--dur-fast) var(--ease-out);
+  }
+  a:hover {
+    color: var(--accent-hover);
+  }
 
-img {
-  max-width: 100%;
-  display: block;
-}
+  img {
+    max-width: 100%;
+    display: block;
+  }
 
-:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-  border-radius: var(--radius-sm);
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
+
+  /* 滚动条 */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: var(--radius-pill);
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--text-secondary);
+  }
 }
 
 .skip-link {
@@ -82,19 +100,6 @@ img {
 
 .el-dialog {
   max-width: calc(100vw - 32px);
-}
-
-/* 滚动条 */
-::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
-}
-::-webkit-scrollbar-thumb {
-  background: var(--border);
-  border-radius: var(--radius-pill);
-}
-::-webkit-scrollbar-thumb:hover {
-  background: var(--text-secondary);
 }
 
 .tabular {

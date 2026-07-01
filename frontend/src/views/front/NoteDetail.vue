@@ -7,6 +7,7 @@ import type { NoteDetail } from '@/types'
 import GlassCard from '@/components/GlassCard.vue'
 import Skeleton from '@/components/Skeleton.vue'
 import CommentSection from '@/components/CommentSection.vue'
+import { useThemeStore } from '@/stores/theme'
 
 interface TocItem {
   id: string
@@ -16,6 +17,7 @@ interface TocItem {
 
 const route = useRoute()
 const router = useRouter()
+const themeStore = useThemeStore()
 const note = ref<NoteDetail | null>(null)
 const loading = ref(true)
 
@@ -57,9 +59,11 @@ async function renderContent() {
   const content = note.value.content
   const Vditor = (await import('vditor')).default
   await import('vditor/dist/index.css')
+  const isDark = themeStore.theme === 'dark'
   await Vditor.preview(el, content, {
-    mode: 'light',
-    hljs: { lineNumber: true, style: 'github' },
+    mode: themeStore.theme,
+    theme: { current: themeStore.theme },
+    hljs: { lineNumber: true, style: isDark ? 'github-dark' : 'github' },
     lazyLoadImage: 'https://cdn.jsdelivr.net/npm/vditor/dist/images/img-loading.svg',
   })
   buildToc(el)
@@ -168,6 +172,9 @@ function closeLightbox() {
 
 onMounted(load)
 watch(() => route.params.slug, load)
+watch(() => themeStore.theme, () => {
+  if (note.value && contentEl.value) renderContent()
+})
 onBeforeUnmount(unbindScroll)
 </script>
 

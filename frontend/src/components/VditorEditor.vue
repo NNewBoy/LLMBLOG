@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { onMounted, onBeforeUnmount, ref, watch } from 'vue'
 import { uploadImage } from '@/api'
+import { useThemeStore } from '@/stores/theme'
 
 const props = defineProps<{ modelValue: string; mode?: 'ir' | 'wysiwyg' | 'sv' }>()
 const emit = defineEmits<{ (e: 'update:modelValue', v: string): void }>()
 const el = ref<HTMLElement>()
 let vd: any = null
+const themeStore = useThemeStore()
 
 onMounted(async () => {
   const Vditor = (await import('vditor')).default
@@ -21,7 +23,11 @@ onMounted(async () => {
       'undo', 'redo', '|', 'edit-mode', 'preview', 'outline', 'fullscreen',
     ],
     cache: { enable: false },
-    preview: { hljs: { lineNumber: true, style: 'github' } },
+    theme: themeStore.theme === 'dark' ? 'dark' : 'classic',
+    preview: {
+      theme: { current: themeStore.theme },
+      hljs: { lineNumber: true, style: themeStore.theme === 'dark' ? 'github-dark' : 'github' },
+    },
     upload: {
       url: '/api/v1/images/upload',
       fieldName: 'file',
@@ -46,6 +52,12 @@ watch(
   },
 )
 
+watch(() => themeStore.theme, (t) => {
+  if (!vd) return
+  const isDark = t === 'dark'
+  vd.setTheme(isDark ? 'dark' : 'classic', t, isDark ? 'github-dark' : 'github')
+})
+
 onBeforeUnmount(() => {
   vd?.destroy()
   vd = null
@@ -63,6 +75,5 @@ onBeforeUnmount(() => {
 }
 :deep(.vditor) {
   border-radius: var(--radius-md);
-  border-color: var(--border) !important;
 }
 </style>
