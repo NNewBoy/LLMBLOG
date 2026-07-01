@@ -37,11 +37,14 @@ async function load() {
   activeTocId.value = ''
   try {
     note.value = await getNote(route.params.slug as string)
-    if (note.value) {
-      await nextTick()
-      await renderContent()
-    }
-  } catch {
+    if (!note.value) return
+    // 必须先关闭 loading，v-else-if="note" 分支才会挂载 contentEl，
+    // 否则 renderContent() 因拿不到 contentEl 直接 return，正文与目录都不渲染
+    loading.value = false
+    await nextTick()
+    await renderContent()
+  } catch (e) {
+    console.error('[NoteDetail] load failed:', e)
     note.value = null
   } finally {
     loading.value = false
@@ -60,7 +63,6 @@ async function renderContent() {
     lazyLoadImage: 'https://cdn.jsdelivr.net/npm/vditor/dist/images/img-loading.svg',
   })
   buildToc(el)
-  enhanceCodeBlocks(el)
   enhanceImages(el)
   bindScroll()
 }
@@ -80,33 +82,6 @@ function buildToc(root: HTMLElement) {
   })
   toc.value = items
   if (items.length) activeTocId.value = items[0].id
-}
-
-function enhanceCodeBlocks(root: HTMLElement) {
-  const blocks = root.querySelectorAll('pre')
-  blocks.forEach((pre) => {
-    if (pre.querySelector('.code-copy-btn')) return
-    pre.style.position = 'relative'
-    const btn = document.createElement('button')
-    btn.className = 'code-copy-btn'
-    btn.setAttribute('aria-label', '复制代码')
-    btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>'
-    btn.addEventListener('click', async () => {
-      const code = pre.querySelector('code')
-      const text = code ? code.textContent : pre.textContent
-      if (!text) return
-      try {
-        await navigator.clipboard.writeText(text)
-        btn.classList.add('copied')
-        setTimeout(() => {
-          btn.classList.remove('copied')
-        }, 1600)
-      } catch {
-        /* clipboard unavailable */
-      }
-    })
-    pre.appendChild(btn)
-  })
 }
 
 function enhanceImages(root: HTMLElement) {
@@ -222,7 +197,7 @@ onBeforeUnmount(unbindScroll)
           <div v-if="note.tags && note.tags.length" class="tags">
             <span v-for="t in note.tags" :key="t.id" class="tag">{{ t.name }}</span>
           </div>
-          <div ref="contentEl" class="content vditor-content" />
+          <div ref="contentEl" />
 
           <!-- 上下篇 -->
           <nav v-if="note.prev || note.next" class="prevnext" aria-label="上下篇导航">
@@ -362,142 +337,6 @@ onBeforeUnmount(unbindScroll)
   color: var(--accent);
   font-size: var(--fs-xs);
 }
-.content {
-  line-height: 1.8;
-  color: var(--text);
-  font-size: var(--fs-base);
-  min-width: 0;
-}
-
-/* Vditor 渲染内容样式覆盖 */
-.vditor-content :deep(h1),
-.vditor-content :deep(h2),
-.vditor-content :deep(h3),
-.vditor-content :deep(h4),
-.vditor-content :deep(h5),
-.vditor-content :deep(h6) {
-  margin: var(--sp-5) 0 var(--sp-3);
-  font-weight: 600;
-  line-height: 1.4;
-  scroll-margin-top: 80px;
-}
-.vditor-content :deep(h1) {
-  font-size: var(--fs-lg);
-}
-.vditor-content :deep(h2) {
-  font-size: var(--fs-md);
-  padding-bottom: 6px;
-  border-bottom: 1px solid var(--border);
-}
-.vditor-content :deep(h3) {
-  font-size: var(--fs-base);
-}
-.vditor-content :deep(p) {
-  margin: var(--sp-3) 0;
-}
-.vditor-content :deep(a) {
-  color: var(--accent);
-  text-decoration: none;
-}
-.vditor-content :deep(a:hover) {
-  text-decoration: underline;
-}
-.vditor-content :deep(blockquote) {
-  margin: var(--sp-4) 0;
-  padding: var(--sp-2) var(--sp-4);
-  border-left: 3px solid var(--accent);
-  background: var(--accent-soft);
-  color: var(--text-secondary);
-  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
-}
-.vditor-content :deep(code) {
-  padding: 2px 6px;
-  border-radius: var(--radius-sm);
-  background: var(--surface-hover);
-  font-family: var(--font-mono);
-  font-size: 0.9em;
-}
-.vditor-content :deep(pre) {
-  margin: var(--sp-4) 0;
-  padding: var(--sp-4);
-  border-radius: var(--radius-sm);
-  background: var(--bg);
-  overflow-x: auto;
-  border: 1px solid var(--border);
-}
-.vditor-content :deep(pre code) {
-  padding: 0;
-  background: transparent;
-}
-.vditor-content :deep(ul),
-.vditor-content :deep(ol) {
-  margin: var(--sp-3) 0;
-  padding-left: var(--sp-5);
-}
-.vditor-content :deep(li) {
-  margin: var(--sp-1) 0;
-}
-.vditor-content :deep(table) {
-  width: 100%;
-  margin: var(--sp-4) 0;
-  border-collapse: collapse;
-}
-.vditor-content :deep(th),
-.vditor-content :deep(td) {
-  padding: var(--sp-2) var(--sp-3);
-  border: 1px solid var(--border);
-  text-align: left;
-}
-.vditor-content :deep(th) {
-  background: var(--surface-hover);
-  font-weight: 600;
-}
-.vditor-content :deep(img),
-.vditor-content :deep(.article-img) {
-  max-width: 100%;
-  border-radius: var(--radius-sm);
-  margin: var(--sp-3) 0;
-  cursor: zoom-in;
-  transition: transform var(--dur-fast) var(--ease-out);
-}
-.vditor-content :deep(img:hover) {
-  transform: scale(1.01);
-}
-.vditor-content :deep(hr) {
-  margin: var(--sp-5) 0;
-  border: none;
-  border-top: 1px solid var(--border);
-}
-
-/* 代码复制按钮 */
-.vditor-content :deep(.code-copy-btn) {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  width: 28px;
-  height: 28px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: none;
-  border-radius: var(--radius-sm);
-  background: var(--surface-strong);
-  color: var(--text-secondary);
-  cursor: pointer;
-  opacity: 0;
-  transition: opacity var(--dur-fast), color var(--dur-fast), background var(--dur-fast);
-}
-.vditor-content :deep(pre:hover .code-copy-btn) {
-  opacity: 1;
-}
-.vditor-content :deep(.code-copy-btn:hover) {
-  color: var(--accent);
-}
-.vditor-content :deep(.code-copy-btn.copied) {
-  opacity: 1;
-  color: var(--success);
-}
-
 /* 上下篇 */
 .prevnext {
   display: grid;
