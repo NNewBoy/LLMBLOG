@@ -26,36 +26,38 @@ function onSearch() {
 </script>
 
 <template>
-  <header class="navbar glass">
-    <div class="navbar-inner">
-      <button class="icon-btn hamburger" aria-label="打开菜单" @click="showDrawer = true">
-        <MenuIcon :size="22" />
-      </button>
-
-      <RouterLink to="/" class="brand" aria-label="返回首页">
-        <span class="brand-mark">L</span>
-        <span class="brand-text">LLMBLOG</span>
-      </RouterLink>
-
-      <nav class="nav-links" aria-label="主导航">
-        <RouterLink
-          v-for="l in links"
-          :key="l.to"
-          :to="l.to"
-          class="nav-link"
-          :class="{ active: l.exact ? $route.path === l.to : $route.path.startsWith(l.to) && l.to !== '/' }"
-          >{{ l.label }}</RouterLink
-        >
-      </nav>
-
-      <div class="nav-tools">
-        <button class="icon-btn" aria-label="搜索" @click="showSearch = true">
-          <SearchIcon :size="20" />
+  <div class="navbar-wrapper">
+    <header class="navbar glass">
+      <div class="navbar-inner">
+        <button class="icon-btn hamburger" aria-label="打开菜单" @click="showDrawer = true">
+          <MenuIcon :size="22" />
         </button>
-        <ThemeToggle />
+
+        <RouterLink to="/" class="brand" aria-label="返回首页">
+          <span class="brand-mark">L</span>
+          <span class="brand-text">LLMBLOG</span>
+        </RouterLink>
+
+        <nav class="nav-links" aria-label="主导航">
+          <RouterLink
+            v-for="l in links"
+            :key="l.to"
+            :to="l.to"
+            class="nav-link"
+            :class="{ active: l.exact ? $route.path === l.to : $route.path.startsWith(l.to) && l.to !== '/' }"
+            >{{ l.label }}</RouterLink
+          >
+        </nav>
+
+        <div class="nav-tools">
+          <button class="icon-btn" aria-label="搜索" @click="showSearch = true">
+            <SearchIcon :size="20" />
+          </button>
+          <ThemeToggle />
+        </div>
       </div>
-    </div>
-  </header>
+    </header>
+  </div>
 
   <!-- 移动端抽屉 -->
   <Teleport to="body">
@@ -99,26 +101,27 @@ function onSearch() {
 </template>
 
 <style scoped>
-.navbar {
+.navbar-wrapper {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
-  height: var(--navbar-h);
   z-index: var(--z-navbar);
-  border-radius: 0;
-  border-left: none;
-  border-right: none;
-  border-top: none;
+  padding: 16px 24px;
+  background: transparent;
+}
+.navbar {
+  height: var(--navbar-h);
+  border-radius: 16px;
 }
 .navbar-inner {
   max-width: 1280px;
   margin: 0 auto;
   height: 100%;
-  padding: 0 var(--sp-4);
+  padding: 0 var(--sp-5);
   display: flex;
   align-items: center;
-  gap: var(--sp-4);
+  gap: var(--sp-3);
 }
 .hamburger {
   display: none;
@@ -178,7 +181,7 @@ function onSearch() {
   margin-left: auto;
   display: flex;
   align-items: center;
-  gap: var(--sp-2);
+  gap: var(--sp-3);
 }
 .icon-btn {
   display: inline-flex;
@@ -268,6 +271,9 @@ function onSearch() {
 }
 
 @media (max-width: 768px) {
+  .navbar-wrapper {
+    padding: 8px 16px;
+  }
   .hamburger {
     display: inline-flex;
   }

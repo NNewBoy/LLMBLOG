@@ -66,13 +66,15 @@ function onKeydown(e: KeyboardEvent, item: EntryItem) {
 <template>
   <div class="entry-page">
     <!-- 顶栏 -->
-    <header class="entry-topbar glass">
-      <div class="brand">
-        <Globe :size="22" />
-        <span>{{ settings.settings.site_name || '个人笔记博客' }}</span>
-      </div>
-      <ThemeToggle />
-    </header>
+    <div class="entry-topbar-wrapper">
+      <header class="entry-topbar glass">
+        <div class="brand">
+          <Globe :size="22" />
+          <span>{{ settings.settings.site_name || '个人笔记博客' }}</span>
+        </div>
+        <ThemeToggle />
+      </header>
+    </div>
 
     <!-- 主体 -->
     <main id="main-content" class="entry-main">
@@ -125,21 +127,28 @@ function onKeydown(e: KeyboardEvent, item: EntryItem) {
 }
 
 /* 顶栏 */
-.entry-topbar {
-  position: sticky;
+.entry-topbar-wrapper {
+  position: fixed;
   top: 0;
+  left: 0;
+  right: 0;
   z-index: var(--z-navbar);
+  padding: 16px 24px;
+  background: transparent;
+}
+.entry-topbar {
+  height: var(--navbar-h);
+  border-radius: 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--sp-4);
-  padding: var(--sp-3) var(--sp-5);
-  border-bottom: 1px solid var(--surface-border);
+  padding: 0 var(--sp-5);
 }
 .brand {
   display: inline-flex;
   align-items: center;
-  gap: var(--sp-2);
+  gap: var(--sp-3);
   font-weight: 700;
   font-size: var(--fs-md);
   color: var(--text);
@@ -154,7 +163,7 @@ function onKeydown(e: KeyboardEvent, item: EntryItem) {
   align-items: center;
   justify-content: center;
   gap: var(--sp-7);
-  padding: var(--sp-7) var(--sp-4) var(--sp-6);
+  padding: 90px var(--sp-4) var(--sp-6);
   max-width: 960px;
   margin: 0 auto;
   width: 100%;
@@ -260,8 +269,8 @@ function onKeydown(e: KeyboardEvent, item: EntryItem) {
 
 /* 移动端 */
 @media (max-width: 768px) {
-  .entry-topbar { padding: var(--sp-3) var(--sp-4); }
-  .entry-main { gap: var(--sp-6); padding: var(--sp-6) var(--sp-3) var(--sp-5); }
+  .entry-topbar-wrapper { padding: 8px 16px; }
+  .entry-main { padding: 74px var(--sp-3) var(--sp-5); gap: var(--sp-6); }
   .entry-grid { grid-template-columns: 1fr; }
   .card-desc { white-space: normal; }
 }

@@ -56,17 +56,19 @@ function logout() {
     </aside>
 
     <div class="admin-main">
-      <header class="admin-topbar glass">
-        <button class="icon-btn hamburger" aria-label="打开菜单" @click="drawerOpen = true">
-          <MenuIcon :size="22" />
-        </button>
-        <div class="topbar-spacer" />
-        <ThemeToggle />
-        <button class="icon-btn logout" aria-label="退出登录" @click="logout">
-          <LogOut :size="18" />
-          <span class="logout-text">退出</span>
-        </button>
-      </header>
+      <div class="admin-topbar-wrapper">
+        <header class="admin-topbar glass">
+          <button class="icon-btn hamburger" aria-label="打开菜单" @click="drawerOpen = true">
+            <MenuIcon :size="22" />
+          </button>
+          <div class="topbar-spacer" />
+          <ThemeToggle />
+          <button class="icon-btn logout" aria-label="退出登录" @click="logout">
+            <LogOut :size="18" />
+            <span class="logout-text">退出</span>
+          </button>
+        </header>
+      </div>
 
       <main id="main-content" class="admin-content">
         <RouterView v-slot="{ Component }">
@@ -178,19 +180,20 @@ function logout() {
   display: flex;
   flex-direction: column;
 }
+.admin-topbar-wrapper {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-navbar);
+  padding: 16px 24px;
+  background: transparent;
+}
 .admin-topbar {
   height: var(--navbar-h);
-  border-radius: 0;
-  border-top: none;
-  border-left: none;
-  border-right: none;
+  border-radius: 16px;
   display: flex;
   align-items: center;
   gap: var(--sp-3);
   padding: 0 var(--sp-5);
-  position: sticky;
-  top: 0;
-  z-index: var(--z-navbar);
 }
 .topbar-spacer {
   flex: 1;
@@ -226,6 +229,9 @@ function logout() {
 }
 
 @media (max-width: 768px) {
+  .admin-topbar-wrapper {
+    padding: 8px 16px;
+  }
   .admin-sidebar {
     position: fixed;
     top: 0;

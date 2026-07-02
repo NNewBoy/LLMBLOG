@@ -70,7 +70,7 @@ const showSidebar = computed(() => !route.name || route.name !== 'note-detail')
   outline-offset: 2px;
 }
 .layout-main {
-  padding-top: var(--navbar-h);
+  padding-top: 90px; /* navbar-h(58) + wrapper-padding(16*2) */
   min-height: 100vh;
   min-height: 100dvh;
 }
@@ -161,6 +161,9 @@ const showSidebar = computed(() => !route.name || route.name !== 'note-detail')
   }
 }
 @media (max-width: 768px) {
+  .layout-main {
+    padding-top: 74px; /* navbar-h(58) + wrapper-padding(8*2) */
+  }
   .layout-sidebar {
     display: none;
   }
