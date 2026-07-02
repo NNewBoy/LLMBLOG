@@ -32,6 +32,18 @@ const lightboxSrc = ref('')
 const lightboxAlt = ref('')
 
 let cleanupFns: Array<() => void> = []
+let scrollWrap: HTMLElement | null = null
+
+/** 向上查找 el-scrollbar 的滚动容器 */
+function getScrollWrap(): HTMLElement | null {
+  if (!contentEl.value) return null
+  let el: HTMLElement | null = contentEl.value
+  while (el) {
+    if (el.classList?.contains('el-scrollbar__wrap')) return el
+    el = el.parentElement
+  }
+  return null
+}
 
 async function load() {
   loading.value = true
@@ -109,17 +121,19 @@ function enhanceImages(root: HTMLElement) {
 
 function bindScroll() {
   unbindScroll()
+  scrollWrap = getScrollWrap()
+  if (!scrollWrap) return
   const onScroll = () => {
-    const doc = document.documentElement
-    const scrollTop = window.scrollY || doc.scrollTop
-    const max = doc.scrollHeight - window.innerHeight
+    if (!scrollWrap) return
+    const scrollTop = scrollWrap.scrollTop
+    const max = scrollWrap.scrollHeight - scrollWrap.clientHeight
     progress.value = max > 0 ? Math.min(100, (scrollTop / max) * 100) : 0
     showTop.value = scrollTop > 400
     updateActiveToc()
   }
-  window.addEventListener('scroll', onScroll, { passive: true })
+  scrollWrap.addEventListener('scroll', onScroll, { passive: true })
   onScroll()
-  cleanupFns.push(() => window.removeEventListener('scroll', onScroll))
+  cleanupFns.push(() => scrollWrap?.removeEventListener('scroll', onScroll))
 }
 
 function unbindScroll() {
@@ -139,14 +153,16 @@ function updateActiveToc() {
     }
   })
   activeTocId.value = current
-  // 同步 TOC 滚动到可视
+  // 同步 TOC 滚动到可视（手动计算，避免 scrollIntoView 触发主滚动容器）
   if (tocEl.value) {
     const active = tocEl.value.querySelector('.toc-item.on') as HTMLElement | null
     if (active) {
       const cRect = tocEl.value.getBoundingClientRect()
       const aRect = active.getBoundingClientRect()
-      if (aRect.top < cRect.top || aRect.bottom > cRect.bottom) {
-        active.scrollIntoView({ block: 'nearest' })
+      if (aRect.top < cRect.top) {
+        tocEl.value.scrollTop -= cRect.top - aRect.top
+      } else if (aRect.bottom > cRect.bottom) {
+        tocEl.value.scrollTop += aRect.bottom - cRect.bottom
       }
     }
   }
@@ -154,15 +170,16 @@ function updateActiveToc() {
 
 function scrollToHeading(id: string) {
   const target = document.getElementById(id)
-  if (!target) return
-  const top = target.getBoundingClientRect().top + window.scrollY - 80
+  if (!target || !scrollWrap) return
+  const top = target.getBoundingClientRect().top - scrollWrap.getBoundingClientRect().top + scrollWrap.scrollTop - 80
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-  window.scrollTo({ top, behavior: reduce ? 'auto' : 'smooth' })
+  scrollWrap.scrollTo({ top, behavior: reduce ? 'auto' : 'smooth' })
 }
 
 function backToTop() {
+  if (!scrollWrap) return
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-  window.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' })
+  scrollWrap.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' })
 }
 
 function closeLightbox() {
@@ -183,14 +200,14 @@ onBeforeUnmount(unbindScroll)
     <!-- 阅读进度条 -->
     <div class="progress-bar" :style="{ width: progress + '%' }" aria-hidden="true" />
 
-    <GlassCard v-if="loading" padding="32px">
+    <GlassCard v-if="loading" padding="24px">
       <Skeleton :lines="8" />
     </GlassCard>
 
     <template v-else-if="note">
       <div class="detail-grid">
         <!-- 正文 -->
-        <GlassCard padding="32px" class="article">
+        <GlassCard padding="24px" class="article">
           <button class="back" @click="router.back()">
             <ArrowLeft :size="16" /> 返回
           </button>
@@ -280,7 +297,7 @@ onBeforeUnmount(unbindScroll)
 }
 .progress-bar {
   position: fixed;
-  top: var(--navbar-h);
+  top: calc(var(--navbar-h) + var(--sp-4));
   left: 0;
   height: 3px;
   background: linear-gradient(90deg, var(--accent), var(--accent-hover));
@@ -394,9 +411,9 @@ onBeforeUnmount(unbindScroll)
 /* TOC */
 .toc {
   position: sticky;
-  top: calc(var(--navbar-h) + var(--sp-4));
+  top: var(--distance-nav-h);
   align-self: start;
-  max-height: calc(100vh - var(--navbar-h) - var(--sp-6));
+  max-height: calc(100vh - var(--distance-nav-h) - var(--sp-4));
   overflow-y: auto;
   padding: var(--sp-3);
   background: var(--surface);
@@ -534,13 +551,9 @@ onBeforeUnmount(unbindScroll)
     display: none;
   }
 }
-@media (max-width: 640px) {
-  .prevnext {
-    grid-template-columns: 1fr;
-  }
-  .pn.next {
-    text-align: left;
-    align-items: flex-start;
+@media (max-width: 748px) {
+  .progress-bar {
+    top: calc(var(--navbar-h) + var(--sp-3));
   }
 }
 

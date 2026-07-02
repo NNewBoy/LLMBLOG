@@ -1,29 +1,37 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref, watch, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
+import { ElScrollbar } from 'element-plus'
 import AppNavbar from '@/components/AppNavbar.vue'
 import GlassCard from '@/components/GlassCard.vue'
 import { useSettingsStore } from '@/stores/settings'
 
 const route = useRoute()
 const settings = useSettingsStore()
+const scrollbarRef = ref<InstanceType<typeof ElScrollbar>>()
 // 详情页自行渲染右侧 TOC，隐藏通用侧边栏
 const showSidebar = computed(() => !route.name || route.name !== 'note-detail')
+
+// 路由切换时重置滚动位置到顶部
+watch(() => route.path, () => {
+  nextTick(() => scrollbarRef.value?.setScrollTop(0))
+})
 </script>
 
 <template>
   <a href="#main-content" class="skip-link">跳到主内容</a>
   <AppNavbar />
   <main id="main-content" class="layout-main">
-    <div class="layout-container" :class="{ 'has-sidebar': showSidebar }">
-      <div class="layout-content">
-        <RouterView v-slot="{ Component }">
-          <Transition name="fade" mode="out-in">
-            <component :is="Component" />
-          </Transition>
-        </RouterView>
-      </div>
-      <aside v-if="showSidebar" class="layout-sidebar" aria-label="侧边栏">
+    <el-scrollbar ref="scrollbarRef">
+      <div class="layout-container" :class="{ 'has-sidebar': showSidebar }">
+        <div class="layout-content">
+          <RouterView v-slot="{ Component }">
+            <Transition name="fade" mode="out-in">
+              <component :is="Component" />
+            </Transition>
+          </RouterView>
+        </div>
+        <aside v-if="showSidebar" class="layout-sidebar" aria-label="侧边栏">
         <GlassCard padding="20px" class="profile-card">
           <div class="profile">
             <img
@@ -46,7 +54,8 @@ const showSidebar = computed(() => !route.name || route.name !== 'note-detail')
           </p>
         </GlassCard>
       </aside>
-    </div>
+      </div>
+    </el-scrollbar>
   </main>
 </template>
 
@@ -70,14 +79,13 @@ const showSidebar = computed(() => !route.name || route.name !== 'note-detail')
   outline-offset: 2px;
 }
 .layout-main {
-  padding-top: 90px; /* navbar-h(58) + wrapper-padding(16*2) */
-  min-height: 100vh;
-  min-height: 100dvh;
+  height: 100vh;
+  height: 100dvh;
 }
 .layout-container {
   max-width: 1100px;
   margin: 0 auto;
-  padding: var(--sp-6) var(--sp-4);
+  padding: var(--distance-nav-h) var(--sp-5) var(--sp-6);
   display: grid;
   gap: var(--sp-6);
 }
@@ -92,7 +100,7 @@ const showSidebar = computed(() => !route.name || route.name !== 'note-detail')
   flex-direction: column;
   gap: var(--sp-4);
   position: sticky;
-  top: calc(var(--navbar-h) + var(--sp-5));
+  top: var(--distance-nav-h);
   align-self: start;
   max-height: calc(100vh - var(--navbar-h) - var(--sp-8));
   overflow: auto;
@@ -147,6 +155,9 @@ const showSidebar = computed(() => !route.name || route.name !== 'note-detail')
   line-height: 1.6;
 }
 @media (max-width: 1024px) {
+  .layout-container {
+    padding: var(--distance-nav-h-mobile) var(--sp-4) var(--sp-5);
+  }
   .has-sidebar {
     grid-template-columns: 1fr;
   }
@@ -161,9 +172,6 @@ const showSidebar = computed(() => !route.name || route.name !== 'note-detail')
   }
 }
 @media (max-width: 768px) {
-  .layout-main {
-    padding-top: 74px; /* navbar-h(58) + wrapper-padding(8*2) */
-  }
   .layout-sidebar {
     display: none;
   }

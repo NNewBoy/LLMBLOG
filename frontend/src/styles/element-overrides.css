@@ -86,9 +86,23 @@
   color: var(--text) !important;
 }
 .el-drawer {
-  background: var(--surface-strong) !important;
+  background: var(--bg) !important;
   backdrop-filter: blur(var(--blur)) saturate(var(--saturate));
+  -webkit-backdrop-filter: blur(var(--blur)) saturate(var(--saturate));
+  border: 1px solid var(--surface-border);
 }
+.el-drawer__body {
+  padding: var(--sp-5) var(--sp-4) !important;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+.el-overlay {
+  background: rgba(0, 0, 0, 0.48) !important;
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+
 .el-message-box {
   background: var(--surface-strong) !important;
   border: 1px solid var(--surface-border) !important;

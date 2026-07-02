@@ -10,8 +10,9 @@
   body {
     margin: 0;
     padding: 0;
-    min-height: 100vh;
-    min-height: 100dvh;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
   }
 
   body {
@@ -22,7 +23,6 @@
     background: var(--bg);
     -webkit-font-smoothing: antialiased;
     transition: background var(--dur-slow) var(--ease-out), color var(--dur-slow) var(--ease-out);
-    overflow-x: hidden;
   }
 
   /* 背景光斑 */
@@ -37,6 +37,11 @@
       radial-gradient(circle at 88% 22%, var(--bg-blob-2) 0, transparent 36%),
       radial-gradient(circle at 70% 85%, var(--bg-blob-3) 0, transparent 40%);
     opacity: 0.55;
+  }
+ 
+  #app {
+    height: 100vh;
+    height: 100dvh;
   }
 
   a {
@@ -60,19 +65,11 @@
     border-radius: var(--radius-sm);
   }
 
-  /* 滚动条 */
+  /* 系统滚动条隐藏：页面滚动统一由 el-scrollbar 接管 */
   ::-webkit-scrollbar {
-    width: 10px;
-    height: 10px;
-  }
-
-  ::-webkit-scrollbar-thumb {
-    background: var(--border);
-    border-radius: var(--radius-pill);
-  }
-
-  ::-webkit-scrollbar-thumb:hover {
-    background: var(--text-secondary);
+    width: 0;
+    height: 0;
+    display: none;
   }
 }
 

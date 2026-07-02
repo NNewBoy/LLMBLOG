@@ -135,7 +135,7 @@ onMounted(() => load(true))
 </script>
 
 <template>
-  <GlassCard padding="28px" class="comments">
+  <GlassCard padding="24px" class="comments">
     <div class="head">
       <h2 class="title">
         <MessageCircle :size="18" /> 评论 <span class="count tabular">{{ total }}</span>

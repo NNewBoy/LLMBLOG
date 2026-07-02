@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { RouterLink, useRouter } from 'vue-router'
+import { ref, watch, nextTick } from 'vue'
+import { RouterLink, useRouter, useRoute } from 'vue-router'
+import { ElScrollbar } from 'element-plus'
 import {
   LayoutDashboard,
   FileText,
@@ -13,10 +14,13 @@ import {
 } from 'lucide-vue-next'
 import { useAuthStore } from '@/stores/auth'
 import ThemeToggle from '@/components/ThemeToggle.vue'
+import AppDrawer from '@/components/AppDrawer.vue'
 
 const auth = useAuthStore()
 const router = useRouter()
+const route = useRoute()
 const drawerOpen = ref(false)
+const scrollbarRef = ref<InstanceType<typeof ElScrollbar>>()
 
 const menu = [
   { to: '/admin/dashboard', label: '分析概览', icon: LayoutDashboard },
@@ -31,12 +35,17 @@ function logout() {
   auth.logout()
   router.push('/admin/login')
 }
+
+// 路由切换时重置滚动位置到顶部
+watch(() => route.path, () => {
+  nextTick(() => scrollbarRef.value?.setScrollTop(0))
+})
 </script>
 
 <template>
   <a href="#main-content" class="skip-link">跳到主内容</a>
   <div class="admin-shell">
-    <aside class="admin-sidebar glass" :class="{ open: drawerOpen }">
+    <aside class="admin-sidebar glass">
       <RouterLink to="/admin/dashboard" class="admin-brand">
         <span class="brand-mark">L</span>
         <span>LLMBLOG 后台</span>
@@ -47,13 +56,21 @@ function logout() {
           :key="m.to"
           :to="m.to"
           class="admin-link"
-          @click="drawerOpen = false"
         >
           <component :is="m.icon" :size="18" />
           <span>{{ m.label }}</span>
         </RouterLink>
       </nav>
     </aside>
+
+    <!-- 移动端抽屉侧栏 -->
+    <AppDrawer
+      v-model="drawerOpen"
+      brand-to="/admin/dashboard"
+      brand-text="LLMBLOG 后台"
+      :links="menu"
+      nav-aria-label="后台导航"
+    />
 
     <div class="admin-main">
       <div class="admin-topbar-wrapper">
@@ -70,20 +87,16 @@ function logout() {
         </header>
       </div>
 
-      <main id="main-content" class="admin-content">
-        <RouterView v-slot="{ Component }">
-          <Transition name="fade" mode="out-in">
-            <component :is="Component" />
-          </Transition>
-        </RouterView>
-      </main>
+      <el-scrollbar ref="scrollbarRef" class="admin-scroll">
+        <main id="main-content" class="admin-content">
+          <RouterView v-slot="{ Component }">
+            <Transition name="fade" mode="out-in">
+              <component :is="Component" />
+            </Transition>
+          </RouterView>
+        </main>
+      </el-scrollbar>
     </div>
-
-    <Teleport to="body">
-      <Transition name="fade">
-        <div v-if="drawerOpen" class="admin-scrim" @click="drawerOpen = false" />
-      </Transition>
-    </Teleport>
   </div>
 </template>
 
@@ -108,8 +121,9 @@ function logout() {
 }
 .admin-shell {
   display: flex;
-  min-height: 100vh;
-  min-height: 100dvh;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
 }
 .admin-sidebar {
   width: 240px;
@@ -122,9 +136,7 @@ function logout() {
   display: flex;
   flex-direction: column;
   gap: var(--sp-4);
-  position: sticky;
-  top: 0;
-  height: 100vh;
+  overflow-y: auto;
 }
 .admin-brand {
   display: flex;
@@ -179,12 +191,16 @@ function logout() {
   min-width: 0;
   display: flex;
   flex-direction: column;
+  height: 100%;
+  overflow: hidden;
 }
 .admin-topbar-wrapper {
-  position: sticky;
+  position: fixed;
+  left: 240px;
+  right: 0;
   top: 0;
   z-index: var(--z-navbar);
-  padding: 16px 24px;
+  padding: var(--sp-4) var(--sp-5);
   background: transparent;
 }
 .admin-topbar {
@@ -217,54 +233,31 @@ function logout() {
 }
 .hamburger {
   display: none;
-  border: none;
-  background: transparent;
+}
+.admin-scroll {
+  flex: 1;
+  min-height: 0;
 }
 .admin-content {
-  padding: var(--sp-6);
-  flex: 1;
-}
-.admin-scrim {
-  display: none;
+  padding: var(--distance-nav-h) var(--sp-5) var(--sp-6);
 }
 
 @media (max-width: 768px) {
   .admin-topbar-wrapper {
-    padding: 8px 16px;
+    left: 0;
+    padding: var(--sp-3) var(--sp-4);
+  }
+  .admin-content {
+    padding: var(--distance-nav-h-mobile) var(--sp-4) var(--sp-5);
   }
   .admin-sidebar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    z-index: var(--z-drawer);
-    transform: translateX(-100%);
-    transition: transform var(--dur-base) var(--ease-out);
-    border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
-    height: 100vh;
-  }
-  .admin-sidebar.open {
-    transform: translateX(0);
+    display: none;
   }
   .hamburger {
     display: inline-flex;
   }
   .logout-text {
     display: none;
-  }
-  .admin-content {
-    padding: var(--sp-4);
-  }
-  .admin-scrim {
-    display: block;
-    position: fixed;
-    inset: 0;
-    z-index: var(--z-drawer);
-    background: rgba(0, 0, 0, 0.48);
-  }
-}
-@media (max-width: 375px) {
-  .admin-content {
-    padding: var(--sp-3);
   }
 }
 </style>

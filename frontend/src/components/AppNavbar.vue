@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 import { Menu as MenuIcon, Search as SearchIcon } from 'lucide-vue-next'
 import ThemeToggle from './ThemeToggle.vue'
+import AppDrawer from './AppDrawer.vue'
 
 const showDrawer = ref(false)
 const showSearch = ref(false)
@@ -60,24 +61,13 @@ function onSearch() {
   </div>
 
   <!-- 移动端抽屉 -->
-  <Teleport to="body">
-    <Transition name="fade">
-      <div v-if="showDrawer" class="scrim" @click="showDrawer = false">
-        <div class="drawer glass" @click.stop>
-          <nav aria-label="移动导航">
-            <RouterLink
-              v-for="l in links"
-              :key="l.to"
-              :to="l.to"
-              class="drawer-link"
-              @click="showDrawer = false"
-              >{{ l.label }}</RouterLink
-            >
-          </nav>
-        </div>
-      </div>
-    </Transition>
-  </Teleport>
+  <AppDrawer
+    v-model="showDrawer"
+    brand-to="/"
+    brand-text="LLMBLOG"
+    :links="links"
+    nav-aria-label="移动导航"
+  />
 
   <!-- 搜索弹层 -->
   <Teleport to="body">
@@ -107,7 +97,7 @@ function onSearch() {
   left: 0;
   right: 0;
   z-index: var(--z-navbar);
-  padding: 16px 24px;
+  padding: var(--sp-4) var(--sp-5);
   background: transparent;
 }
 .navbar {
@@ -115,16 +105,12 @@ function onSearch() {
   border-radius: 16px;
 }
 .navbar-inner {
-  max-width: 1280px;
   margin: 0 auto;
   height: 100%;
   padding: 0 var(--sp-5);
   display: flex;
   align-items: center;
   gap: var(--sp-3);
-}
-.hamburger {
-  display: none;
 }
 .brand {
   display: flex;
@@ -201,41 +187,46 @@ function onSearch() {
 .icon-btn:hover {
   background: var(--surface-hover);
 }
-
-.scrim {
-  position: fixed;
-  inset: 0;
-  z-index: var(--z-drawer);
-  background: rgba(0, 0, 0, 0.48);
-  display: flex;
+.hamburger {
+  display: none;
 }
-.drawer {
-  width: 260px;
-  height: 100%;
-  border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
-  padding: var(--sp-5) var(--sp-4);
+.drawer-brand {
+  margin-bottom: var(--sp-4);
+}
+.drawer-nav {
   display: flex;
   flex-direction: column;
-  gap: var(--sp-2);
-  animation: slideIn var(--dur-base) var(--ease-out);
-}
-@keyframes slideIn {
-  from { transform: translateX(-100%); }
-  to { transform: translateX(0); }
+  gap: var(--sp-1);
 }
 .drawer-link {
-  padding: var(--sp-3) var(--sp-4);
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-3);
   border-radius: var(--radius-md);
-  color: var(--text);
+  color: var(--text-secondary);
   font-weight: 500;
   font-size: var(--fs-md);
+  transition: background var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
 }
 .drawer-link:hover {
   background: var(--surface-hover);
+  color: var(--text);
 }
 .drawer-link.router-link-exact-active {
   background: var(--accent-soft);
   color: var(--accent);
+  position: relative;
+}
+.drawer-link.router-link-exact-active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 8px;
+  bottom: 8px;
+  width: 3px;
+  border-radius: 3px;
+  background: var(--accent);
 }
 
 .search-overlay {
@@ -272,7 +263,7 @@ function onSearch() {
 
 @media (max-width: 768px) {
   .navbar-wrapper {
-    padding: 8px 16px;
+    padding: var(--sp-3) var(--sp-4);
   }
   .hamburger {
     display: inline-flex;

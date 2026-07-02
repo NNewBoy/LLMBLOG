@@ -77,7 +77,8 @@ function onKeydown(e: KeyboardEvent, item: EntryItem) {
     </div>
 
     <!-- 主体 -->
-    <main id="main-content" class="entry-main">
+    <el-scrollbar class="entry-scroll">
+      <main id="main-content" class="entry-main">
       <section class="hero">
         <h1 class="hero-title">{{ settings.settings.site_name || '个人笔记博客' }}</h1>
         <p class="hero-desc">{{ settings.settings.site_desc || settings.settings.blogger_desc || '一个记录与分享的角落' }}</p>
@@ -115,13 +116,14 @@ function onKeydown(e: KeyboardEvent, item: EntryItem) {
         </a>
       </footer>
     </main>
+    </el-scrollbar>
   </div>
 </template>
 
 <style scoped>
 .entry-page {
-  min-height: 100vh;
-  min-height: 100dvh;
+  height: 100vh;
+  height: 100dvh;
   display: flex;
   flex-direction: column;
 }
@@ -133,7 +135,7 @@ function onKeydown(e: KeyboardEvent, item: EntryItem) {
   left: 0;
   right: 0;
   z-index: var(--z-navbar);
-  padding: 16px 24px;
+  padding: var(--sp-4) var(--sp-5);
   background: transparent;
 }
 .entry-topbar {
@@ -156,6 +158,10 @@ function onKeydown(e: KeyboardEvent, item: EntryItem) {
 .brand svg { color: var(--accent); }
 
 /* 主体 */
+.entry-scroll {
+  flex: 1;
+  min-height: 0;
+}
 .entry-main {
   flex: 1;
   display: flex;
@@ -163,7 +169,7 @@ function onKeydown(e: KeyboardEvent, item: EntryItem) {
   align-items: center;
   justify-content: center;
   gap: var(--sp-7);
-  padding: 90px var(--sp-4) var(--sp-6);
+  padding: var(--distance-nav-h) var(--sp-5) var(--sp-6);
   max-width: 960px;
   margin: 0 auto;
   width: 100%;
@@ -207,6 +213,7 @@ function onKeydown(e: KeyboardEvent, item: EntryItem) {
   padding: var(--sp-5);
   cursor: pointer;
   border-radius: var(--radius-lg);
+  min-width: 0;
 }
 .entry-card:focus-visible {
   outline: 2px solid var(--accent);
@@ -269,8 +276,8 @@ function onKeydown(e: KeyboardEvent, item: EntryItem) {
 
 /* 移动端 */
 @media (max-width: 768px) {
-  .entry-topbar-wrapper { padding: 8px 16px; }
-  .entry-main { padding: 74px var(--sp-3) var(--sp-5); gap: var(--sp-6); }
+  .entry-topbar-wrapper { padding: var(--sp-3) var(--sp-4); }
+  .entry-main { padding: var(--distance-nav-h-mobile) var(--sp-4) var(--sp-5); gap: var(--sp-6); }
   .entry-grid { grid-template-columns: 1fr; }
   .card-desc { white-space: normal; }
 }
