@@ -15,4 +15,6 @@ class SettingUpdate(BaseModel):
     police_no: str | None = None
     police_url: str | None = None
     police_logo: str | None = None
+    # 入口页跳转链接列表 [{"title": str, "url": str}]
+    entry_links: list[dict] | None = None
     new_password: str | None = None  # 修改密码（前端预哈希）

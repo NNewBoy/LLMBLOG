@@ -17,6 +17,7 @@
 - **响应式**：移动优先，断点 375 / 768 / 1024 / 1440；移动端顶栏抽屉化、侧栏隐藏
 - **Glassmorphism**：`backdrop-filter` 毛玻璃 + `@supports` 实色降级
 - **可访问性基线**：焦点环、键盘可达、aria-live Toast、reduced-motion 令牌
+- **入口页**：Glassmorphism 门户（`/entry`），展示 Blog 主页 / 后台入口 + 配置化跳转链接，支持亮/暗主题切换并自动传递参数，点击计入访客统计
 
 ---
 
@@ -76,7 +77,8 @@ LLMBLOG/
 │   │   ├── db/                   # database / init_db
 │   │   ├── models/               # 7 个 ORM 模型
 │   │   ├── schemas/              # Pydantic 入参/出参
-│   │   └── api/                  # auth / notes / tags / comments / images / stats / settings
+│   │   ├── services/             # visitor（记录访客 + 入口点击）等业务逻辑
+│   │   └── api/                  # auth / notes / tags / comments / images / stats / entry / settings
 │   ├── requirements.txt
 │   ├── .env.example              # 环境变量示例
 │   └── uploads/                  # 图片上传目录（运行时生成）
@@ -90,7 +92,7 @@ LLMBLOG/
     │   ├── styles/               # variables / glass / element-overrides
     │   ├── utils/                # request（Axios 实例）
     │   └── views/
-    │       ├── front/            # Home / Tags / Timeline / Search / NoteDetail
+    │       ├── front/            # Entry / Home / Tags / Timeline / Search / NoteDetail
     │       └── admin/            # Dashboard / Notes / NoteEdit / Images / Tags / Comments / Settings
     ├── lighthouserc.cjs          # Lighthouse CI 配置
     ├── vite.config.ts            # 含 manualChunks 分包 + /api → :8000 代理
@@ -176,7 +178,9 @@ npm run dev
 | `/images` | GET / POST | 列表 / 上传（缩略图） | GET 公开，POST admin |
 | `/images/{id}` | DELETE | 删除（同步删文件） | admin |
 | `/stats` | GET | Dashboard 概览 | admin |
-| `/settings` | GET / PUT | 读取 / 更新 | GET 公开，PUT admin |
+| `/stats/entry` | GET | 入口页点击统计（总量 + 各目标分布） | admin |
+| `/entry/click` | POST | 记录入口页点击跳转 | 公开 |
+| `/settings` | GET / PUT | 读取 / 更新（含 `entry_links` 配置） | GET 公开，PUT admin |
 
 完整 OpenAPI：启动后端后访问 `http://127.0.0.1:8000/docs`。
 

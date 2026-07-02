@@ -64,3 +64,26 @@ def terminals(
         .all()
     )
     return ok([{"name": (r.terminal or "未知"), "value": int(r.c)} for r in rows])
+
+
+@router.get("/entry")
+def entry_stats(
+    days: int = Query(30, ge=1, le=365),
+    db: Session = Depends(get_db),
+    _: str = Depends(require_admin),
+):
+    """入口页点击统计：总点击数与各跳转目标的点击数。"""
+    since = datetime.utcnow() - timedelta(days=days)
+    base = db.query(Visitor).filter(Visitor.source == "entry", Visitor.created_at >= since)
+    total = base.count()
+    rows = (
+        db.query(Visitor.target, func.count().label("c"))
+        .filter(Visitor.source == "entry", Visitor.created_at >= since)
+        .group_by(Visitor.target)
+        .order_by(func.count().desc())
+        .all()
+    )
+    return ok({
+        "total": total,
+        "targets": [{"target": (r.target or ""), "count": int(r.c)} for r in rows],
+    })

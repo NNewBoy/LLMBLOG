@@ -323,6 +323,7 @@
 | ReadingProgress | `views/front/NoteDetail.vue` 内嵌（顶部进度条） | ✅ | 基于 scroll 百分比 |
 | CommentItem / CommentComposer | `components/CommentSection.vue`（2 级嵌套 + 蜜罐 + 点赞 + 回复） | ✅ | 接入 NoteDetail |
 | ThemeToggle | `components/ThemeToggle.vue` | ✅ | 亮/暗/跟随系统三态 |
+| EntryPage | `views/front/Entry.vue` | ✅ | Glassmorphism 门户，Blog/后台入口 + 配置化跳转链接，亮暗主题 + 参数传递，移动优先 |
 | AdminSidebar | `layouts/AdminLayout.vue` 内嵌 | ✅ | 240px + 移动 Drawer |
 | StatCard | `views/admin/Dashboard.vue` 内嵌 | ✅ | |
 | DataTable | Element Plus `el-table` | ✅ | |
@@ -352,3 +353,4 @@
 5. 375px / 横屏 / 键盘可达性手动回归测试待办。
 6. 对比度自动化验证（接入 axe-core / Lighthouse CI）待办。
 7. Vite manualChunks 已分包（vditor/echarts/element-plus 独立 chunk）；虚拟滚动决策不引入（分页覆盖长列表）。✅
+8. 入口页（/entry）已实现 Glassmorphism 门户，含 Blog 主页/后台入口 + 配置化跳转链接，后台 Settings 支持增删 entry_links；Visitor 模型扩展 source/target 字段支持入口点击统计。✅

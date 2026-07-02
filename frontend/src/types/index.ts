@@ -68,6 +68,11 @@ export interface ImageItem {
   thumb_url: string | null
 }
 
+export interface EntryLink {
+  title: string
+  url: string
+}
+
 export interface SiteSettings {
   blogger_name: string
   blogger_desc: string
@@ -82,6 +87,7 @@ export interface SiteSettings {
   police_no: string
   police_url: string
   police_logo: string
+  entry_links: EntryLink[]
 }
 
 export interface Overview {

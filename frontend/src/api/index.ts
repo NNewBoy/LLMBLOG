@@ -32,6 +32,10 @@ export const getAdminSettings = () => request.get<unknown, SiteSettings>('/setti
 export const updateSettings = (data: Partial<SiteSettings> & { new_password?: string }) =>
   request.put<unknown, SiteSettings>('/settings', data)
 
+/* ===== entry ===== */
+export const recordEntryClick = (target: string) =>
+  request.post<unknown, any>('/entry/click', { target })
+
 /* ===== notes ===== */
 export interface NoteQuery {
   keyword?: string

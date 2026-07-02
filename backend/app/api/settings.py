@@ -42,6 +42,8 @@ def update_settings(body: SettingUpdate, db: Session = Depends(get_db), _: str =
             setattr(s, f, v)
     if body.social_links is not None:
         s.social_links = json.dumps(body.social_links, ensure_ascii=False)
+    if body.entry_links is not None:
+        s.entry_links = json.dumps(body.entry_links, ensure_ascii=False)
     if body.new_password:
         s.admin_password_hash = hash_password(body.new_password)
     db.commit()

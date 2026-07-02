@@ -97,6 +97,9 @@ const showSidebar = computed(() => !route.name || route.name !== 'note-detail')
   max-height: calc(100vh - var(--navbar-h) - var(--sp-8));
   overflow: auto;
 }
+.layout-sidebar .glass {
+  box-shadow: none;
+}
 .profile {
   display: flex;
   flex-direction: column;

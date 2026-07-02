@@ -34,8 +34,8 @@
 3、写一个README.md说明文档
 
 ##三
-继续完成Phase 2: DeepAgents LLM 集成，使用Claude Code生成代码
-
-Resume this session with:
-  hermes --resume 20260614_153936_2bd7c2
-  hermes -c "Resume Interrupted Operation"
+/ui-ux-pro-max 根据当前样式风格写一个入口主页，要求：
+1、入口含Blog主页、Blog后台，同时支持在配置列表中添加跳转网页{url, title}
+2、风格为Glassmorphism，同样支持主题切换，可切换Dark Mode 和 Light Mode，切换风格影响Blog主页和Blog后台；跳转配置列表中的网页时给url加上参数，深色theme=dark，浅色theme=light
+3、兼容PC端与移动端
+4、点击入口记录访客数与跳转网页，拓展这个#visitor.py

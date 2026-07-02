@@ -22,6 +22,8 @@ class Setting(Base):
     police_url: Mapped[str] = mapped_column(String(255), default="")
     police_logo: Mapped[str] = mapped_column(String(255), default="")
     admin_password_hash: Mapped[str] = mapped_column(String(255), default="")
+    # 入口页跳转链接配置，JSON 数组：[{"title": "...", "url": "..."}]
+    entry_links: Mapped[str] = mapped_column(Text, default="[]")
 
     def to_public_dict(self) -> dict:
         import json
@@ -38,6 +40,7 @@ class Setting(Base):
             "police_no": self.police_no,
             "police_url": self.police_url,
             "police_logo": self.police_logo,
+            "entry_links": json.loads(self.entry_links or "[]"),
         }
 
     def to_admin_dict(self) -> dict:

@@ -10,6 +10,7 @@
 ### 1.1 路由与布局
 | 路径 | 布局 | 说明 |
 | --- | --- | --- |
+| `/entry` | BlankLayout | Glassmorphism 入口门户页 |
 | `/` | FrontLayout | 首页笔记列表 |
 | `/tags` | FrontLayout | 标签分类页 |
 | `/timeline` | FrontLayout | 时间线页 |
@@ -27,17 +28,29 @@
 
 - FrontLayout：顶部栏 + 主内容 + 右侧侧边栏（移动端隐藏）；详情页主内容右侧再嵌 TOC。
 - AdminLayout：左侧侧边栏菜单 + 顶部栏（标题/用户/退出）+ 主内容。
+- 入口页 `/entry`：独立全屏 Glassmorphism 布局（无导航栏），仅含顶栏 + Hero + 入口卡片网格，适合作为门户起点的独立路由。
 - 路由切换淡入 220ms（`--dur-base`），`<router-view>` 用 `<Transition name="fade">`。
 - 路由懒加载按视图分包（`lazy-loading`、`bundle-splitting`）。
 
-### 1.2 顶部导航栏（前台）
-- 固定顶部，`.glass` 样式，滚动 8px 后增强阴影。
+### 1.2 入口页 `/entry`
+- 独立路由，无 FrontLayout 的导航栏与侧边栏，全屏 Glassmorphism 门户。
+- 顶栏：站点名称（来自 settings）+ `ThemeToggle`，`.glass` sticky 定位。
+- Hero 区：站点名称（渐变色大字）+ 站点描述（次文字居中）。
+- 入口卡片网格（`auto-fit minmax(260px,1fr)`）：
+  - 内置卡片：Blog 主页（`/`）、Blog 后台（`/admin`），各自图标 + 标题 + 描述 + 右侧箭头指示。
+  - 配置化卡片：在后台「系统设置 → 入口页配置」增删 `{title,url}` 跳转链接，自动展示为入口卡片。
+- 点击跳转：内置入口走 `router.push`；外部配置链接走 `window.location`，自动拼接主题参数 `?theme=dark` 或 `?theme=light`。
+- 点击同步记录：调用 `POST /entry/click`，后端写入 Visitor（`source=entry`、`target=跳转地址`），可在 `/stats/entry` 查看点击统计。
+- 备案信息：底部显示 ICP / 公安备案号（来自 settings）。
+- 移动端 ≤768px：网格单列；字号自适应；备案号换行。
+
+### 1.3 顶部导航栏（前台）
 - 左侧：Logo（SVG）+ 菜单（首页/标签/时间线，图标+文字，当前项 `--accent` + 底部 2px 指示条）`[nav-state-active]`。
 - 右侧：搜索按钮、主题切换按钮（仅图标，aria-label）`[aria-labels]`。
 - 移动端：Logo + 汉堡按钮；菜单进入 Drawer（从左滑入 220ms，遮罩 48% 黑）`[drawer-usage]`。
 - 所有触控目标 ≥44px `[touch-target-size]`。
 
-### 1.3 主题切换
+### 1.4 主题切换
 - 图标按钮，点击切换 `data-theme`，过渡 300ms。
 - 选择写入 localStorage；首次访问读 `prefers-color-scheme` `[color-dark-mode]`。
 - Element Plus 通过覆盖其 CSS 变量适配深色。
@@ -235,6 +248,7 @@
 | `CommentItem` | 头像+徽章+meta+内容+操作 | `[color-not-only]` |
 | `CommentComposer` | 昵称+textarea+蜜罐+提交，乐观更新 | `[error-recovery]` |
 | `ThemeToggle` | 图标按钮，aria-label，过渡 | `[aria-labels]` |
+| `EntryCard` | `.glass` 卡片，图标+标题+描述+箭头，hover 箭头平移，点击记录统计 | `[cursor-pointer]` `[touch-target-size]` |
 | `StatCard` | 图标+数字(tabular)+标签+环比 | `[number-tabular]` |
 | `DataTable` | 排序 aria-sort，hover，分页，虚拟滚动 | `[sortable-table]`、`[virtualize-lists]` |
 | `ImageGrid` | 响应式网格，缩略图，懒加载 | `[lazy-load-below-fold]` |
@@ -281,8 +295,8 @@
 | 阶段 | UI/UX 交付 | 状态 | 实现说明 |
 | --- | --- | --- | --- |
 | M1 基础 | 主题令牌、`.glass`、布局（FrontLayout/AdminLayout）、顶部栏、Drawer、ThemeToggle、Toast、Skeleton、EmptyState、路由守卫登录页 | ✅ | `variables.css` + `glass.css` + `element-overrides.css` 落地；AppNavbar/AdminLayout 含移动 Drawer；ThemeToggle 含跟随系统；ElMessage 充当 Toast；Skeleton/EmptyState 由 Element Plus 提供；路由守卫 `requiresAuth` + 401 重定向 |
-| M2 前台 | NoteCard、首页、标签云页、时间线页、搜索弹层、详情页（TOC/BackToTop/ReadingProgress/代码复制/图片预览）、评论区 | ✅ | 首页/标签云/时间线/搜索弹层 ✅；NoteDetail 已接入 Vditor.preview 渲染 + TOC 滚动高亮 + 阅读进度条 + 回顶 FAB + 代码块复制 + 图片懒加载/灯箱 + 上下篇导航 + 评论区（CommentSection）；搜索页关键词高亮 |
-| M3 后台 | AdminLayout、Dashboard（StatCard+图表）、笔记列表+编辑（Vditor+自动保存）、图片管理、标签管理、评论管理、系统设置 | ✅ | AdminLayout/笔记 CRUD/图片/标签/评论/设置 ✅；Dashboard 已接入 ECharts（访客趋势折线/终端分布饼/Top 笔记条形 + 三态 + 主题联动）；NoteEdit 已接 Vditor + 自动保存(localStorage 30s 节流) + Ctrl/S + 离开确认 |
+| M2 前台 | NoteCard、首页、标签云页、时间线页、搜索弹层、详情页（TOC/BackToTop/ReadingProgress/代码复制/图片预览）、评论区、入口页（`/entry` Glassmorphism 门户 + 主题传递 + 点击统计） | ✅ | 首页/标签云/时间线/搜索弹层 ✅；NoteDetail 已接入 Vditor.preview 渲染 + TOC 滚动高亮 + 阅读进度条 + 回顶 FAB + 代码块复制 + 图片懒加载/灯箱 + 上下篇导航 + 评论区（CommentSection）；搜索页关键词高亮；入口页 Entry.vue（Blog/后台卡片 + 配置化跳转链接 + 主题参数拼接 + 点击记录 + 移动端适配） |
+| M3 后台 | AdminLayout、Dashboard（StatCard+图表）、笔记列表+编辑（Vditor+自动保存）、图片管理、标签管理、评论管理、系统设置 + 入口页配置编辑器 | ✅ | AdminLayout/笔记 CRUD/图片/标签/评论/设置 ✅；Dashboard 已接入 ECharts（访客趋势折线/终端分布饼/Top 笔记条形 + 三态 + 主题联动）；NoteEdit 已接 Vditor + 自动保存(localStorage 30s 节流) + Ctrl/S + 离开确认；Settings 新增入口页配置（entry_links 增删行编辑器） |
 | M4 打磨 | 动效错峰、虚拟滚动、可访问性扫描、深色对比验证、375px/横屏测试、reduced-motion、性能（懒加载/分包） | ✅ | 性能：Vite manualChunks 分包✅（主入口 1.2MB→9KB）；动效：reduced-motion 全量化✅；可访问性：skip-link✅ + aria-label✅ + 对比度 WCAG AA✅ + heading 层级修正✅（每页唯一 h1、无跨级）；375px 响应式✅（header flex-wrap / dialog max-width / 表格横滚 / 超窄屏 padding）；Lighthouse CI✅（lighthouserc.cjs + a11y 断言 0.85）。虚拟滚动经评估不引入（分页已覆盖） |
 | M5 上线 | 打包、Nginx、备份、Docker | ✅ | Nginx 生产配置✅（deploy/nginx.conf）；SQLite 备份脚本✅（backup.sh + backup.ps1，WAL checkpoint + 压缩 + 保留策略）；Docker 容器化✅（多阶段构建 + docker-compose + .dockerignore）；环境变量示例✅ + README 部署章节✅ |
 
@@ -297,6 +311,7 @@
 **详情**：[✅] 阅读进度条  [✅] 代码复制反馈  [✅] 图片懒加载+预览  [✅] TOC 高亮+平滑滚动  [✅] 回到顶部  [✅] 评论提交+防刷（蜜罐+限流）  
 **后台编辑**：[✅] 自动保存指示  [✅] 离开确认  [✅] 快捷键（Ctrl/⌘+S）  [✅] 必填校验  [✅] 图片上传入库  
 **图表**：[✅] 三态（空/载/错）[✅] 可访问色  [✅] reduced-motion  [✅] aria-label 摘要  
+**入口页**：[✅] 内置 Blog/后台卡片  [✅] 配置化跳转链接  [✅] 主题切换 + 参数传递  [✅] 点击统计记录  [✅] 移动端单列自适应  
 **全局**：[✅] 双主题对比验证  [✅] 375px 无横向滚动  [✅] 键盘可达  [✅] 焦点环可见
 
 ---
@@ -318,6 +333,7 @@
 | Vditor 编辑器 | `frontend/src/components/VditorEditor.vue`（动态 import + 自定义上传） | ✅ |
 | 评论组件 | `frontend/src/components/CommentSection.vue`（2 级嵌套 + 蜜罐 + 点赞 + 回复 + 分页） | ✅ |
 | ECharts 封装 | `frontend/src/components/BaseChart.vue`（init/resize/dispose + 主题联动） | ✅ |
+| 入口页 | `views/front/Entry.vue`（Glassmorphism 门户，Blog/后台卡片 + 配置化跳转链接 + 主题参数传递 + 点击记录 + 移动端适配） | ✅ |
 | 笔记详情 | `views/front/NoteDetail.vue`（Markdown 渲染 + TOC + 进度 + 回顶 + 代码复制 + 灯箱 + 上下篇） | ✅ |
 | 前台首页 / 标签云 / 时间线 / 搜索 | `views/front/*` | ✅ |
 | 后台笔记列表 / 编辑 | `views/admin/Notes.vue` `NoteEdit.vue`（自动保存 + Ctrl+S + 离开确认） | ✅ |

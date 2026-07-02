@@ -1,3 +1,4 @@
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from app.db.database import Base, engine
@@ -9,6 +10,22 @@ from app.core.config import settings
 
 def init_db():
     Base.metadata.create_all(bind=engine)
+
+
+def _ensure_column(db: Session, table: str, column: str, coltype: str, default: str | None = None):
+    """SQLite 轻量迁移：若列不存在则添加（create_all 不会为已存在的表追加列）。"""
+    cols = [r[1] for r in db.execute(text(f"PRAGMA table_info({table})"))]
+    if column not in cols:
+        dflt = f" DEFAULT '{default}'" if default is not None else ""
+        db.execute(text(f"ALTER TABLE {table} ADD COLUMN {column} {coltype}{dflt}"))
+        db.commit()
+
+
+def migrate(db: Session):
+    """增量迁移：为旧库补齐新增字段。"""
+    _ensure_column(db, "visitors", "source", "VARCHAR(32)", "note")
+    _ensure_column(db, "visitors", "target", "VARCHAR(255)", "")
+    _ensure_column(db, "settings", "entry_links", "TEXT", "[]")
 
 
 def ensure_default_settings(db: Session):

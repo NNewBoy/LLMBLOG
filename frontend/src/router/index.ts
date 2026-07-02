@@ -2,6 +2,7 @@ import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 
 const routes: RouteRecordRaw[] = [
+  { path: '/entry', name: 'entry', component: () => import('@/views/front/Entry.vue') },
   {
     path: '/',
     component: () => import('@/layouts/FrontLayout.vue'),

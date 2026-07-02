@@ -14,6 +14,10 @@ class Visitor(Base):
     ua: Mapped[str] = mapped_column(String(512), default="")
     fingerprint: Mapped[str] = mapped_column(String(64), default="", index=True)
     path: Mapped[str] = mapped_column(String(255), default="")
+    # 访问来源：note=笔记详情访问，entry=入口页点击跳转
+    source: Mapped[str] = mapped_column(String(32), default="note", index=True)
+    # 入口点击跳转的目标网页（仅 source=entry 时有值）
+    target: Mapped[str] = mapped_column(String(255), default="")
     terminal: Mapped[str] = mapped_column(String(64), default="")
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, index=True)
 

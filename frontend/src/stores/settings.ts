@@ -17,6 +17,7 @@ const fallback: SiteSettings = {
   police_no: '',
   police_url: '',
   police_logo: '',
+  entry_links: [],
 }
 
 export const useSettingsStore = defineStore('settings', () => {
