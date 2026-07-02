@@ -114,3 +114,13 @@ export interface TopNote {
   slug: string
   view_count: number
 }
+
+export interface EntryTarget {
+  title: string
+  count: number
+}
+
+export interface EntryStats {
+  total: number
+  targets: EntryTarget[]
+}

@@ -23,8 +23,23 @@ def _ensure_column(db: Session, table: str, column: str, coltype: str, default: 
 
 def migrate(db: Session):
     """增量迁移：为旧库补齐新增字段。"""
+    # visitors 表
     _ensure_column(db, "visitors", "source", "VARCHAR(32)", "note")
     _ensure_column(db, "visitors", "target", "VARCHAR(255)", "")
+    # settings 表
+    _ensure_column(db, "settings", "blogger_name", "VARCHAR(64)", "博主")
+    _ensure_column(db, "settings", "blogger_desc", "VARCHAR(255)", "一个记录与分享的角落")
+    _ensure_column(db, "settings", "blogger_avatar", "VARCHAR(255)", "")
+    _ensure_column(db, "settings", "social_links", "TEXT", "{}")
+    _ensure_column(db, "settings", "site_favicon", "VARCHAR(255)", "")
+    _ensure_column(db, "settings", "site_name", "VARCHAR(64)", "个人笔记博客")
+    _ensure_column(db, "settings", "site_desc", "VARCHAR(255)", "")
+    _ensure_column(db, "settings", "site_keywords", "VARCHAR(255)", "")
+    _ensure_column(db, "settings", "icp_no", "VARCHAR(64)", "")
+    _ensure_column(db, "settings", "icp_url", "VARCHAR(255)", "")
+    _ensure_column(db, "settings", "police_no", "VARCHAR(64)", "")
+    _ensure_column(db, "settings", "police_url", "VARCHAR(255)", "")
+    _ensure_column(db, "settings", "police_logo", "VARCHAR(255)", "")
     _ensure_column(db, "settings", "entry_links", "TEXT", "[]")
 
 

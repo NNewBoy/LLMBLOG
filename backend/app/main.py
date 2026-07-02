@@ -18,7 +18,7 @@ async def lifespan(app: FastAPI):
     init_db()
     db = SessionLocal()
     try:
-        migrate(db)
+        # migrate(db)
         ensure_default_settings(db)
     finally:
         db.close()

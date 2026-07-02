@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+import json
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy import func
 from sqlalchemy.orm import Session
@@ -9,6 +10,7 @@ from app.core.deps import require_admin
 from app.models.note import Note
 from app.models.comment import Comment
 from app.models.visitor import Visitor
+from app.models.setting import Setting
 
 router = APIRouter(prefix="/stats", tags=["stats"])
 
@@ -72,7 +74,7 @@ def entry_stats(
     db: Session = Depends(get_db),
     _: str = Depends(require_admin),
 ):
-    """入口页点击统计：总点击数与各跳转目标的点击数。"""
+    """入口页点击统计：总点击数与各入口标题的点击数。"""
     since = datetime.utcnow() - timedelta(days=days)
     base = db.query(Visitor).filter(Visitor.source == "entry", Visitor.created_at >= since)
     total = base.count()
@@ -83,7 +85,17 @@ def entry_stats(
         .order_by(func.count().desc())
         .all()
     )
+
+    # 构建 target → title 映射
+    title_map: dict[str, str] = {"/": "Blog 主页", "/admin": "Blog 后台"}
+    setting = db.query(Setting).first()
+    if setting:
+        for link in json.loads(setting.entry_links or "[]"):
+            url = link.get("url", "")
+            if url:
+                title_map[url] = link.get("title", url)
+
     return ok({
         "total": total,
-        "targets": [{"target": (r.target or ""), "count": int(r.c)} for r in rows],
+        "targets": [{"title": title_map.get(r.target or "", r.target or "(未知)"), "count": int(r.c)} for r in rows],
     })

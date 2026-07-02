@@ -11,6 +11,7 @@ import type {
   DayPoint,
   TerminalPoint,
   TopNote,
+  EntryStats,
 } from '@/types'
 
 /* ===== auth ===== */
@@ -90,3 +91,5 @@ export const getTopNotes = (limit = 5) =>
   request.get<unknown, TopNote[]>('/stats/top-notes', { params: { limit } })
 export const getTerminals = (days = 30) =>
   request.get<unknown, TerminalPoint[]>('/stats/terminals', { params: { days } })
+export const getEntryStats = (days = 30) =>
+  request.get<unknown, EntryStats>('/stats/entry', { params: { days } })

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, onBeforeUnmount, ref, computed, nextTick } from 'vue'
-import { getOverview, getVisitors, getTopNotes, getTerminals } from '@/api'
-import type { Overview, DayPoint, TerminalPoint, TopNote } from '@/types'
+import { getOverview, getVisitors, getTopNotes, getTerminals, getEntryStats } from '@/api'
+import type { Overview, DayPoint, TerminalPoint, TopNote, EntryStats } from '@/types'
 import GlassCard from '@/components/GlassCard.vue'
 import BaseChart from '@/components/BaseChart.vue'
 import { FileText, Users, Eye, MessageCircle, Loader2 } from 'lucide-vue-next'
@@ -11,18 +11,22 @@ const days = ref(30)
 const visitors = ref<DayPoint[]>([])
 const terminals = ref<TerminalPoint[]>([])
 const topNotes = ref<TopNote[]>([])
+const entryStats = ref<EntryStats | null>(null)
 
 const loadingOverview = ref(false)
 const loadingVisitors = ref(false)
 const loadingTerminals = ref(false)
 const loadingTop = ref(false)
+const loadingEntry = ref(false)
 const visitorErr = ref('')
 const terminalErr = ref('')
 const topErr = ref('')
+const entryErr = ref('')
 
 const visitorRef = ref<InstanceType<typeof BaseChart>>()
 const terminalRef = ref<InstanceType<typeof BaseChart>>()
 const topRef = ref<InstanceType<typeof BaseChart>>()
+const entryRef = ref<InstanceType<typeof BaseChart>>()
 
 const cards = [
   { key: 'note_count', label: '笔记总数', icon: FileText },
@@ -170,6 +174,51 @@ const topOption = computed(() => {
   }
 })
 
+const entryOption = computed(() => {
+  const c = themeColors()
+  const targets = entryStats.value?.targets || []
+  const data = targets
+    .slice()
+    .reverse()
+    .map((t) => ({
+      value: t.count,
+      name: t.title || '(未知)',
+    }))
+  return {
+    color: ['#6366f1'],
+    textStyle: { color: c.text, fontSize: 12 },
+    tooltip: {
+      trigger: 'axis',
+      axisPointer: { type: 'shadow' },
+      backgroundColor: c.surface,
+      borderColor: c.border,
+      textStyle: { color: c.text },
+    },
+    grid: { left: 8, right: 40, top: 10, bottom: 10, containLabel: true },
+    xAxis: {
+      type: 'value',
+      splitLine: { lineStyle: { color: c.border } },
+      axisLabel: { color: c.textSecondary, fontSize: 11 },
+    },
+    yAxis: {
+      type: 'category',
+      data: data.map((d) => d.name),
+      axisLine: { lineStyle: { color: c.border } },
+      axisLabel: { color: c.textSecondary, fontSize: 11 },
+    },
+    animation: !reduceMotion.value,
+    series: [
+      {
+        type: 'bar',
+        data: data.map((d) => d.value),
+        barWidth: '55%',
+        itemStyle: { borderRadius: [0, 4, 4, 0] },
+        label: { show: true, position: 'right', color: c.textSecondary, fontSize: 11 },
+      },
+    ],
+  }
+})
+
 function themeColors() {
   const s = getComputedStyle(document.documentElement)
   return {
@@ -225,9 +274,21 @@ async function loadTop() {
   }
 }
 
+async function loadEntry() {
+  loadingEntry.value = true
+  entryErr.value = ''
+  try {
+    entryStats.value = await getEntryStats(days.value)
+  } catch {
+    entryErr.value = '加载失败'
+  } finally {
+    loadingEntry.value = false
+  }
+}
+
 async function changeDays(d: number) {
   days.value = d
-  await Promise.all([loadVisitors(), loadTerminals()])
+  await Promise.all([loadVisitors(), loadTerminals(), loadEntry()])
 }
 
 function refreshAllCharts() {
@@ -242,7 +303,7 @@ function refreshAllCharts() {
 const themeObserver = new MutationObserver(() => refreshAllCharts())
 
 onMounted(async () => {
-  await Promise.all([loadOverview(), loadVisitors(), loadTerminals(), loadTop()])
+  await Promise.all([loadOverview(), loadVisitors(), loadTerminals(), loadTop(), loadEntry()])
   if (document.documentElement) {
     themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
   }
@@ -314,6 +375,18 @@ onBeforeUnmount(() => themeObserver.disconnect())
           aria-label="热门笔记浏览量条形图" />
       </GlassCard>
     </div>
+
+    <!-- 入口访客统计 -->
+    <GlassCard padding="20px" class="chart-card">
+      <h2 class="chart-title">入口访客统计</h2>
+      <div v-if="loadingEntry" class="chart-loading">
+        <Loader2 :size="24" class="spin" /> 加载中…
+      </div>
+      <div v-else-if="entryErr" class="chart-empty">{{ entryErr }}</div>
+      <div v-else-if="!entryStats?.targets.length" class="chart-empty">暂无入口点击数据</div>
+      <BaseChart v-else ref="entryRef" :option="entryOption" height="280px"
+        aria-label="入口访客点击量条形图" />
+    </GlassCard>
   </div>
 </template>
 
