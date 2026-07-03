@@ -11,10 +11,13 @@
   },
   "dependencies": {
     "@element-plus/icons-vue": "^2.3.1",
+    "@types/markdown-it": "^14.1.2",
     "axios": "^1.7.2",
     "echarts": "^5.5.0",
     "element-plus": "^2.7.6",
+    "highlight.js": "^11.11.1",
     "lucide-vue-next": "^0.395.0",
+    "markdown-it": "^14.3.0",
     "pinia": "^2.1.7",
     "vditor": "^3.11.2",
     "vue": "^3.4.31",

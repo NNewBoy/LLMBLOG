@@ -1,13 +1,14 @@
 <script setup lang="ts">
 import { onMounted, onBeforeUnmount, ref, watch, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Eye, MessageCircle, ArrowLeft, ArrowUp, ChevronLeft, ChevronRight, Loader2 } from 'lucide-vue-next'
+import { Eye, MessageCircle, ArrowLeft, ArrowUp, ChevronLeft, ChevronRight } from 'lucide-vue-next'
 import { getNote } from '@/api'
 import type { NoteDetail } from '@/types'
 import GlassCard from '@/components/GlassCard.vue'
 import Skeleton from '@/components/Skeleton.vue'
 import CommentSection from '@/components/CommentSection.vue'
 import { useThemeStore } from '@/stores/theme'
+import { renderMarkdown, loadHighlightTheme } from '@/utils/markdown'
 
 interface TocItem {
   id: string
@@ -70,17 +71,10 @@ async function renderContent() {
   if (!note.value || !contentEl.value) return
   rendering.value = true
   const el = contentEl.value
-  const content = note.value.content
-  const Vditor = (await import('vditor')).default
-  await import('vditor/dist/index.css')
-  const isDark = themeStore.theme === 'dark'
-  await Vditor.preview(el, content, {
-    cdn: '/vditor',
-    mode: themeStore.theme,
-    theme: { current: themeStore.theme },
-    hljs: { lineNumber: true, style: isDark ? 'github-dark' : 'github' },
-    lazyLoadImage: '/vditor/dist/images/img-loading.svg',
-  })
+  // 加载 highlight.js 主题 CSS
+  await loadHighlightTheme(themeStore.theme === 'dark' ? 'dark' : 'light')
+  // 用 markdown-it 渲染（同步，极快）
+  el.innerHTML = renderMarkdown(note.value.content)
   buildToc(el)
   enhanceImages(el)
   bindScroll()
@@ -225,10 +219,7 @@ onBeforeUnmount(unbindScroll)
           <div v-if="note.tags && note.tags.length" class="tags">
             <span v-for="t in note.tags" :key="t.id" class="tag">{{ t.name }}</span>
           </div>
-          <div ref="contentEl" />
-          <div v-if="rendering" class="render-loading">
-            <Loader2 :size="20" class="spin" /> 正文渲染中…
-          </div>
+          <div ref="contentEl" class="markdown-body" />
 
           <!-- 上下篇 -->
           <nav v-if="note.prev || note.next" class="prevnext" aria-label="上下篇导航">
@@ -530,20 +521,85 @@ onBeforeUnmount(unbindScroll)
   justify-content: center;
 }
 
-.render-loading {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--sp-2);
-  padding: var(--sp-6) 0;
+/* Markdown 正文排版 */
+.markdown-body {
+  line-height: 1.8;
+  color: var(--text);
+  font-size: var(--fs-base);
+  word-break: break-word;
+}
+.markdown-body :deep(h1),
+.markdown-body :deep(h2),
+.markdown-body :deep(h3),
+.markdown-body :deep(h4),
+.markdown-body :deep(h5),
+.markdown-body :deep(h6) {
+  margin: var(--sp-5) 0 var(--sp-3);
+  font-weight: 600;
+  line-height: 1.4;
+  scroll-margin-top: 80px;
+}
+.markdown-body :deep(h1) { font-size: var(--fs-lg); }
+.markdown-body :deep(h2) {
+  font-size: var(--fs-md);
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+}
+.markdown-body :deep(h3) { font-size: var(--fs-base); }
+.markdown-body :deep(p) { margin: var(--sp-3) 0; }
+.markdown-body :deep(a) { color: var(--accent); text-decoration: none; }
+.markdown-body :deep(a:hover) { text-decoration: underline; }
+.markdown-body :deep(blockquote) {
+  margin: var(--sp-4) 0;
+  padding: var(--sp-2) var(--sp-4);
+  border-left: 3px solid var(--accent);
+  background: var(--accent-soft);
   color: var(--text-secondary);
-  font-size: var(--fs-sm);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
 }
-.spin {
-  animation: spin 1s linear infinite;
+.markdown-body :deep(code) {
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-hover);
+  font-family: var(--font-mono);
+  font-size: 0.9em;
 }
-@keyframes spin {
-  to { transform: rotate(360deg); }
+.markdown-body :deep(pre) {
+  margin: var(--sp-4) 0;
+  padding: var(--sp-4);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  overflow-x: auto;
+  border: 1px solid var(--border);
+}
+.markdown-body :deep(pre code) { padding: 0; background: transparent; }
+.markdown-body :deep(ul),
+.markdown-body :deep(ol) { margin: var(--sp-3) 0; padding-left: var(--sp-5); }
+.markdown-body :deep(li) { margin: var(--sp-1) 0; }
+.markdown-body :deep(table) {
+  display: table;
+  width: 100%;
+  margin: var(--sp-4) 0;
+  border-collapse: collapse;
+}
+.markdown-body :deep(th),
+.markdown-body :deep(td) {
+  padding: var(--sp-2) var(--sp-3);
+  border: 1px solid var(--border);
+  text-align: left;
+  white-space: normal;
+  word-break: break-word;
+}
+.markdown-body :deep(th) { background: var(--surface-hover); font-weight: 600; }
+.markdown-body :deep(img) {
+  max-width: 100%;
+  border-radius: var(--radius-sm);
+  margin: var(--sp-3) 0;
+}
+.markdown-body :deep(hr) {
+  margin: var(--sp-5) 0;
+  border: none;
+  border-top: 1px solid var(--border);
 }
 
 /* 过渡 */

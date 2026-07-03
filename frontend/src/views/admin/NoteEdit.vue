@@ -203,7 +203,7 @@ async function save() {
       <el-checkbox v-model="form.is_pinned">置顶</el-checkbox>
     </div>
     <div class="form-row">
-      <VditorEditor v-model="form.content" />
+      <VditorEditor v-if="loaded" v-model="form.content" />
     </div>
     <div class="actions">
       <span class="hint">Ctrl/⌘ + S 快速保存</span>

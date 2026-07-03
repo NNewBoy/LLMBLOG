@@ -58,11 +58,11 @@ watch(() => route.path, () => {
       </div>
       <!-- 备案信息 -->
       <footer v-if="settings.settings.icp_no || settings.settings.police_no" class="layout-footer">
-        <a v-if="settings.settings.icp_no" :href="settings.settings.icp_url || '#'" target="_blank" rel="noopener">
+        <a v-if="settings.settings.icp_no" :href="settings.settings.icp_url || '#'" class="footer-link" target="_blank" rel="noopener">
           {{ settings.settings.icp_no }}
         </a>
         <Dot v-if="settings.settings.icp_no && settings.settings.police_no" :size="16" class="footer-sep" />
-        <a v-if="settings.settings.police_no" :href="settings.settings.police_url || '#'" target="_blank" rel="noopener">
+        <a v-if="settings.settings.police_no" :href="settings.settings.police_url || '#'" class="footer-link" target="_blank" rel="noopener">
           <img v-if="settings.settings.police_logo" :src="settings.settings.police_logo" alt="公安备案" class="footer-police-img" />
           <Shield v-else :size="14" class="footer-police-icon" />
           {{ settings.settings.police_no }}
@@ -210,6 +210,12 @@ watch(() => route.path, () => {
 }
 .layout-footer a:hover {
   color: var(--accent);
+}
+.footer-link {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  line-height: 1em;
 }
 .footer-sep {
   color: var(--text-disabled);
