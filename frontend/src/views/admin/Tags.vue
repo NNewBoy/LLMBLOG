@@ -1,11 +1,14 @@
 <script setup lang="ts">
-import { onMounted, ref, reactive } from 'vue'
+import { onMounted, ref, reactive, computed } from 'vue'
 import { listTags, createTag, updateTag, deleteTag } from '@/api'
 import type { Tag } from '@/types'
 import GlassCard from '@/components/GlassCard.vue'
-import { Plus } from 'lucide-vue-next'
+import { Plus, Pencil, Trash2 } from 'lucide-vue-next'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { useThemeStore } from '@/stores/theme'
 
+const themeStore = useThemeStore()
+const tipEffect = computed(() => (themeStore.theme === 'light' ? 'light' : 'dark'))
 const tags = ref<Tag[]>([])
 const dialog = ref(false)
 const editing = ref<Tag | null>(null)
@@ -58,19 +61,23 @@ async function remove(t: Tag) {
     </div>
     <GlassCard padding="0">
       <el-table :data="tags" style="width: 100%">
-        <el-table-column prop="name" label="名称" min-width="140" />
-        <el-table-column prop="description" label="描述" min-width="200" />
-        <el-table-column label="颜色" width="100">
+        <el-table-column prop="name" label="名称" min-width="120" />
+        <el-table-column prop="description" label="描述" min-width="120" />
+        <el-table-column label="颜色" align="center" width="60">
           <template #default="{ row }">
             <span v-if="row.color" class="swatch" :style="{ background: row.color }"></span>
             <span v-else>—</span>
           </template>
         </el-table-column>
-        <el-table-column prop="note_count" label="笔记数" width="90" />
-        <el-table-column label="操作" width="160" fixed="right">
+        <el-table-column prop="note_count" label="笔记数" align="center" width="70" />
+        <el-table-column label="操作" align="center" width="90" fixed="right">
           <template #default="{ row }">
-            <el-button link type="primary" @click="openEdit(row)">编辑</el-button>
-            <el-button link type="danger" @click="remove(row)">删除</el-button>
+            <el-tooltip content="编辑" :effect="tipEffect" placement="top">
+              <Pencil :size="16" class="act-icon act-edit" @click="openEdit(row)" />
+            </el-tooltip>
+            <el-tooltip content="删除" :effect="tipEffect" placement="top">
+              <Trash2 :size="16" class="act-icon act-del" @click="remove(row)" />
+            </el-tooltip>
           </template>
         </el-table-column>
       </el-table>
@@ -122,5 +129,22 @@ async function remove(t: Tag) {
   height: 20px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--border);
+}
+.act-icon {
+  cursor: pointer;
+  vertical-align: middle;
+  transition: opacity var(--dur-fast) var(--ease-out);
+}
+.act-icon:not(:last-child) {
+  margin-right: var(--sp-3);
+}
+.act-icon:hover {
+  opacity: 0.7;
+}
+.act-edit {
+  color: var(--accent);
+}
+.act-del {
+  color: var(--error);
 }
 </style>

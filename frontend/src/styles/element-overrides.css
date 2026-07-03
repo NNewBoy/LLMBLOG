@@ -17,6 +17,7 @@
   --el-fill-color-blank: transparent;
   --el-box-shadow: var(--shadow);
   --el-box-shadow-light: var(--shadow);
+  --el-popper-bg-color-dark: var(--surface);
 }
 
 [data-theme='dark'] {
@@ -27,6 +28,7 @@
   --el-bg-color-page: transparent;
   --el-fill-color-blank: transparent;
   --el-mask-color: rgba(0, 0, 0, 0.5);
+  --el-popper-bg-color-dark: var(--surface);
 }
 
 .el-input__wrapper,
@@ -36,48 +38,59 @@
   box-shadow: 0 0 0 1px var(--border) inset !important;
   border-radius: var(--radius-md) !important;
 }
+
 .el-input__inner,
 .el-textarea__inner {
   color: var(--text) !important;
 }
+
 .el-button {
   border-radius: var(--radius-md) !important;
 }
+
 .el-button--primary {
   background: var(--accent) !important;
   border-color: var(--accent) !important;
 }
+
 .el-button--primary:hover {
   background: var(--accent-hover) !important;
   border-color: var(--accent-hover) !important;
 }
+
 .el-button--danger {
   background: var(--error) !important;
   border-color: var(--error) !important;
   color: #fff !important;
 }
+
 .el-table {
-  background: transparent !important;
+  background: var(--bg) !important;
   color: var(--text) !important;
 }
+
 .el-table tr,
 .el-table th.el-table__cell,
 .el-table td.el-table__cell {
-  background: transparent !important;
+  background: var(--bg) !important;
   border-color: var(--border) !important;
   color: var(--text) !important;
 }
-.el-table--enable-row-hover .el-table__body tr:hover > td.el-table__cell {
-  background: var(--surface-hover) !important;
+
+.el-table--enable-row-hover .el-table__body tr:hover>td.el-table__cell {
+  background: var(--bg) !important;
 }
+
 .el-pagination .el-pager li,
 .el-pagination button {
   background: transparent !important;
   color: var(--text-secondary) !important;
 }
+
 .el-pagination .el-pager li.is-active {
   color: var(--accent) !important;
 }
+
 .el-dialog {
   background: var(--surface-strong) !important;
   backdrop-filter: blur(var(--blur)) saturate(var(--saturate));
@@ -85,18 +98,21 @@
   border-radius: var(--radius-lg) !important;
   color: var(--text) !important;
 }
+
 .el-drawer {
   background: var(--bg) !important;
   backdrop-filter: blur(var(--blur)) saturate(var(--saturate));
   -webkit-backdrop-filter: blur(var(--blur)) saturate(var(--saturate));
   border: 1px solid var(--surface-border);
 }
+
 .el-drawer__body {
   padding: var(--sp-5) var(--sp-4) !important;
   display: flex;
   flex-direction: column;
   gap: var(--sp-2);
 }
+
 .el-overlay {
   background: rgba(0, 0, 0, 0.48) !important;
   backdrop-filter: blur(2px);
@@ -108,6 +124,7 @@
   border: 1px solid var(--surface-border) !important;
   color: var(--text) !important;
 }
+
 .el-card {
   background: var(--surface) !important;
   border: 1px solid var(--surface-border) !important;
@@ -115,9 +132,26 @@
   color: var(--text) !important;
   backdrop-filter: blur(var(--blur)) saturate(var(--saturate));
 }
+
 .el-empty__description p {
   color: var(--text-secondary) !important;
 }
+
 .el-tag {
   border-radius: var(--radius-pill) !important;
+}
+
+.el-popper {
+  color: var(--text) !important;
+}
+
+.el-popper.is-dark {
+  color: #e6e9ef !important;
+  background: var(--bg) !important;
+  border-color: var(--bg) !important;
+}
+
+.el-popper.is-dark>.el-popper__arrow::before {
+  background-color: var(--bg) !important;
+  border-color: var(--bg) !important;
 }

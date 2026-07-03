@@ -1,19 +1,28 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch, nextTick } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
-import { Menu as MenuIcon, Search as SearchIcon } from 'lucide-vue-next'
+import { Menu as MenuIcon, Search as SearchIcon, Home as HomeIcon, Tags as TagsIcon, History as HistoryIcon, X } from 'lucide-vue-next'
 import ThemeToggle from './ThemeToggle.vue'
 import AppDrawer from './AppDrawer.vue'
 
 const showDrawer = ref(false)
 const showSearch = ref(false)
 const keyword = ref('')
+const searchInput = ref<HTMLInputElement>()
 const router = useRouter()
 
+// 搜索弹层展开时自动聚焦（Teleport + Transition 下 autofocus 不生效）
+watch(showSearch, async (v) => {
+  if (v) {
+    await nextTick()
+    searchInput.value?.focus()
+  }
+})
+
 const links = [
-  { to: '/', label: '首页', exact: true },
-  { to: '/tags', label: '标签' },
-  { to: '/timeline', label: '时间线' },
+  { to: '/', label: '首页', exact: true, icon: HomeIcon },
+  { to: '/tags', label: '标签', icon: TagsIcon },
+  { to: '/timeline', label: '时间线', icon: HistoryIcon },
 ]
 
 function onSearch() {
@@ -46,8 +55,10 @@ function onSearch() {
             :to="l.to"
             class="nav-link"
             :class="{ active: l.exact ? $route.path === l.to : $route.path.startsWith(l.to) && l.to !== '/' }"
-            >{{ l.label }}</RouterLink
           >
+            <component :is="l.icon" :size="16" class="nav-link-icon" />
+            {{ l.label }}
+          </RouterLink>
         </nav>
 
         <div class="nav-tools">
@@ -76,14 +87,16 @@ function onSearch() {
         <div class="search-box glass">
           <SearchIcon :size="20" class="search-icon" />
           <input
+            ref="searchInput"
             v-model="keyword"
             type="search"
             placeholder="搜索笔记…"
             aria-label="搜索笔记"
-            autofocus
             @keyup.enter="onSearch"
           />
-          <button class="icon-btn" aria-label="关闭搜索" @click="showSearch = false">Esc</button>
+          <button class="icon-btn" aria-label="关闭搜索" @click="showSearch = false">
+            <X :size="20" />
+          </button>
         </div>
       </div>
     </Transition>
@@ -139,12 +152,18 @@ function onSearch() {
   margin-left: var(--sp-3);
 }
 .nav-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
   padding: var(--sp-2) var(--sp-3);
   border-radius: var(--radius-md);
   color: var(--text-secondary);
   font-weight: 500;
   position: relative;
   transition: color var(--dur-fast) var(--ease-out), background var(--dur-fast) var(--ease-out);
+}
+.nav-link-icon {
+  flex-shrink: 0;
 }
 .nav-link:hover {
   color: var(--text);
@@ -233,8 +252,9 @@ function onSearch() {
   position: fixed;
   inset: 0;
   z-index: var(--z-modal);
-  background: rgba(0, 0, 0, 0.4);
+  background: var(--surface);
   backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   display: flex;
   align-items: flex-start;
   justify-content: center;
@@ -255,6 +275,9 @@ function onSearch() {
   color: var(--text);
   font-size: var(--fs-md);
   height: 44px;
+}
+.search-box input::placeholder {
+  color: var(--text-disabled);
 }
 .search-icon {
   color: var(--text-secondary);

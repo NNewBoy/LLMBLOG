@@ -1,13 +1,16 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { listNotes, deleteNote, togglePin } from '@/api'
 import type { NoteSummary } from '@/types'
 import GlassCard from '@/components/GlassCard.vue'
 import EmptyState from '@/components/EmptyState.vue'
-import { Plus } from 'lucide-vue-next'
+import { Plus, Pencil, Pin, PinOff, Trash2 } from 'lucide-vue-next'
 import { ElMessageBox, ElMessage } from 'element-plus'
+import { useThemeStore } from '@/stores/theme'
 
+const themeStore = useThemeStore()
+const tipEffect = computed(() => (themeStore.theme === 'light' ? 'light' : 'dark'))
 const router = useRouter()
 const notes = ref<NoteSummary[]>([])
 const loading = ref(true)
@@ -43,22 +46,30 @@ async function remove(n: NoteSummary) {
     </div>
     <GlassCard padding="0">
       <el-table :data="notes" v-loading="loading" style="width: 100%">
-        <el-table-column prop="title" label="标题" min-width="180" />
-        <el-table-column prop="author" label="作者" width="100" />
-        <el-table-column label="状态" width="100">
+        <el-table-column prop="title" label="标题" min-width="120" />
+        <el-table-column prop="author" label="作者" align="center" min-width="60" />
+        <el-table-column label="状态" align="center" width="100">
           <template #default="{ row }">
             <span class="badge" :class="row.status">{{ row.status }}</span>
           </template>
         </el-table-column>
-        <el-table-column label="查看" width="80" prop="view_count" />
-        <el-table-column label="创建时间" width="120">
+        <el-table-column label="查看" align="center" width="60" prop="view_count" />
+        <el-table-column label="创建时间" align="center" width="90">
           <template #default="{ row }">{{ new Date(row.created_at).toLocaleDateString('zh-CN') }}</template>
         </el-table-column>
-        <el-table-column label="操作" width="200" fixed="right">
+        <el-table-column label="操作" align="center" width="120" fixed="right">
           <template #default="{ row }">
-            <el-button link type="primary" @click="router.push(`/admin/notes/${row.id}/edit`)">编辑</el-button>
-            <el-button link @click="pin(row)">{{ row.is_pinned ? '取消置顶' : '置顶' }}</el-button>
-            <el-button link type="danger" @click="remove(row)">删除</el-button>
+            <el-tooltip content="编辑" :effect="tipEffect" placement="top">
+              <Pencil :size="16" class="act-icon act-edit"
+                @click="router.push(`/admin/notes/${row.id}/edit`)" />
+            </el-tooltip>
+            <el-tooltip :content="row.is_pinned ? '取消置顶' : '置顶'" :effect="tipEffect" placement="top">
+              <component :is="row.is_pinned ? PinOff : Pin" :size="16"
+                class="act-icon act-toggle" @click="pin(row)" />
+            </el-tooltip>
+            <el-tooltip content="删除" :effect="tipEffect" placement="top">
+              <Trash2 :size="16" class="act-icon act-del" @click="remove(row)" />
+            </el-tooltip>
           </template>
         </el-table-column>
       </el-table>
@@ -101,6 +112,7 @@ async function remove(n: NoteSummary) {
   border-radius: var(--radius-pill);
   font-size: var(--fs-xs);
   background: var(--surface-hover);
+  color: var(--accent);
 }
 .badge.published {
   color: var(--success);
@@ -110,5 +122,25 @@ async function remove(n: NoteSummary) {
 }
 .badge.hidden {
   color: var(--text-secondary);
+}
+.act-icon {
+  cursor: pointer;
+  vertical-align: middle;
+  transition: opacity var(--dur-fast) var(--ease-out);
+}
+.act-icon:not(:last-child) {
+  margin-right: var(--sp-3);
+}
+.act-icon:hover {
+  opacity: 0.7;
+}
+.act-edit {
+  color: var(--accent);
+}
+.act-toggle {
+  color: var(--text-secondary);
+}
+.act-del {
+  color: var(--error);
 }
 </style>

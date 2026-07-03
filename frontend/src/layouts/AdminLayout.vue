@@ -11,6 +11,8 @@ import {
   Settings as SettingsIcon,
   LogOut,
   Menu as MenuIcon,
+  ChevronsLeft,
+  ChevronsRight,
 } from 'lucide-vue-next'
 import { useAuthStore } from '@/stores/auth'
 import ThemeToggle from '@/components/ThemeToggle.vue'
@@ -21,6 +23,16 @@ const router = useRouter()
 const route = useRoute()
 const drawerOpen = ref(false)
 const scrollbarRef = ref<InstanceType<typeof ElScrollbar>>()
+
+// 侧边栏折叠状态（仅桌面端），记忆用户偏好
+const SIDEBAR_KEY = 'llmblog-admin-sidebar-collapsed'
+const collapsed = ref(localStorage.getItem(SIDEBAR_KEY) === '1')
+function toggleSidebar() {
+  collapsed.value = !collapsed.value
+  localStorage.setItem(SIDEBAR_KEY, collapsed.value ? '1' : '0')
+  // 侧边栏 CSS transition 结束后通知图表 resize（220ms + 余量）
+  setTimeout(() => window.dispatchEvent(new Event('resize')), 250)
+}
 
 const menu = [
   { to: '/admin/dashboard', label: '分析概览', icon: LayoutDashboard },
@@ -44,11 +56,13 @@ watch(() => route.path, () => {
 
 <template>
   <a href="#main-content" class="skip-link">跳到主内容</a>
-  <div class="admin-shell">
-    <aside class="admin-sidebar glass">
-      <RouterLink to="/admin/dashboard" class="admin-brand">
-        <span class="brand-mark">L</span>
-        <span>LLMBLOG 后台</span>
+  <div class="admin-shell" :class="{ 'sidebar-collapsed': collapsed }">
+    <aside id="admin-sidebar" class="admin-sidebar glass">
+      <RouterLink to="/admin/dashboard" class="admin-brand" aria-label="LLMBLOG 后台首页">
+        <div class="brand-icon-border">
+          <span class="brand-mark">L</span>
+        </div>
+        <span class="brand-text">LLMBLOG 后台</span>
       </RouterLink>
       <nav aria-label="后台导航">
         <RouterLink
@@ -56,9 +70,13 @@ watch(() => route.path, () => {
           :key="m.to"
           :to="m.to"
           class="admin-link"
+          :aria-label="collapsed ? m.label : undefined"
+          :title="collapsed ? m.label : undefined"
         >
-          <component :is="m.icon" :size="18" />
-          <span>{{ m.label }}</span>
+          <div class="icon-border">
+            <component :is="m.icon" :size="18" />
+          </div>
+          <span class="admin-link-label">{{ m.label }}</span>
         </RouterLink>
       </nav>
     </aside>
@@ -77,6 +95,15 @@ watch(() => route.path, () => {
         <header class="admin-topbar glass">
           <button class="icon-btn hamburger" aria-label="打开菜单" @click="drawerOpen = true">
             <MenuIcon :size="22" />
+          </button>
+          <button
+            class="icon-btn sidebar-toggle"
+            :aria-expanded="!collapsed"
+            aria-controls="admin-sidebar"
+            :aria-label="collapsed ? '展开侧边栏' : '折叠侧边栏'"
+            @click="toggleSidebar"
+          >
+            <component :is="collapsed ? ChevronsRight : ChevronsLeft" :size="20" />
           </button>
           <div class="topbar-spacer" />
           <ThemeToggle />
@@ -124,9 +151,13 @@ watch(() => route.path, () => {
   height: 100vh;
   height: 100dvh;
   overflow: hidden;
+  --sidebar-w: 240px;
+}
+.admin-shell.sidebar-collapsed {
+  --sidebar-w: 72px;
 }
 .admin-sidebar {
-  width: 240px;
+  width: var(--sidebar-w);
   flex-shrink: 0;
   border-radius: 0;
   border-top: none;
@@ -137,14 +168,26 @@ watch(() => route.path, () => {
   flex-direction: column;
   gap: var(--sp-4);
   overflow-y: auto;
+  transition: width var(--dur-base) var(--ease-out);
 }
 .admin-brand {
   display: flex;
   align-items: center;
-  gap: var(--sp-2);
+  height: 28px;
+  line-height: 28px;
+  font-size: var(--fs-md);
   font-weight: 700;
   color: var(--text);
   padding: 0 var(--sp-2);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.brand-icon-border {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
 }
 .brand-mark {
   display: inline-flex;
@@ -152,19 +195,28 @@ watch(() => route.path, () => {
   justify-content: center;
   width: 28px;
   height: 28px;
+  overflow: hidden;
   border-radius: var(--radius-sm);
   background: var(--accent);
   color: var(--accent-on);
   font-size: var(--fs-sm);
 }
+.brand-text {
+  padding-left: var(--sp-3);
+}
 .admin-link {
   display: flex;
   align-items: center;
-  gap: var(--sp-3);
-  padding: var(--sp-3) var(--sp-3);
+  height: calc(var(--fs-md) + var(--sp-4) * 2);
+  line-height: var(--fs-md);
+  padding: var(--sp-4) var(--sp-3);
   border-radius: var(--radius-md);
   color: var(--text-secondary);
+  font-size: var(--fs-md);
   font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   transition: background var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
 }
 .admin-link:hover {
@@ -186,6 +238,13 @@ watch(() => route.path, () => {
   border-radius: 3px;
   background: var(--accent);
 }
+.admin-link-label {
+  padding-left: var(--sp-3);
+}
+.icon-border {
+  width: var(--fs-md);
+  height: var(--fs-md);
+}
 .admin-main {
   flex: 1;
   min-width: 0;
@@ -196,12 +255,13 @@ watch(() => route.path, () => {
 }
 .admin-topbar-wrapper {
   position: fixed;
-  left: 240px;
+  left: var(--sidebar-w);
   right: 0;
   top: 0;
   z-index: var(--z-navbar);
   padding: var(--sp-4) var(--sp-5);
   background: transparent;
+  transition: left var(--dur-base) var(--ease-out);
 }
 .admin-topbar {
   height: var(--navbar-h);
@@ -234,6 +294,22 @@ watch(() => route.path, () => {
 .hamburger {
   display: none;
 }
+.sidebar-toggle {
+  display: inline-flex;
+}
+/* 折叠态：仅显示图标，隐藏文字并居中 */
+.admin-shell.sidebar-collapsed .admin-brand {
+  justify-content: flex-start;
+}
+.admin-shell.sidebar-collapsed .brand-text {
+  display: none;
+}
+.admin-shell.sidebar-collapsed .admin-link {
+  justify-content: flex-start;
+}
+.admin-shell.sidebar-collapsed .admin-link-label {
+  display: none;
+}
 .admin-scroll {
   flex: 1;
   min-height: 0;
@@ -255,6 +331,9 @@ watch(() => route.path, () => {
   }
   .hamburger {
     display: inline-flex;
+  }
+  .sidebar-toggle {
+    display: none;
   }
   .logout-text {
     display: none;

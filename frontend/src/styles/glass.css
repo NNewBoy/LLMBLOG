@@ -6,16 +6,20 @@
   border: 1px solid var(--surface-border);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow);
+  overflow: hidden;
 }
+
 .glass-interactive {
   transition: background var(--dur-base) var(--ease-out),
     box-shadow var(--dur-base) var(--ease-out), transform var(--dur-base) var(--ease-out);
 }
+
 .glass-interactive:hover {
   background: var(--surface-hover);
   box-shadow: var(--shadow-strong);
   transform: translateY(-2px);
 }
+
 .glass-interactive:active {
   transform: scale(0.98);
 }

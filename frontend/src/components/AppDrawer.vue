@@ -57,7 +57,7 @@ function close() {
 .drawer-brand {
   display: flex;
   align-items: center;
-  gap: var(--sp-2);
+  gap: var(--sp-3);
   font-weight: 700;
   color: var(--text);
   font-size: var(--fs-md);

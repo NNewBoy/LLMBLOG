@@ -2,6 +2,7 @@
 import { computed, ref, watch, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElScrollbar } from 'element-plus'
+import { Dot, Shield } from 'lucide-vue-next'
 import AppNavbar from '@/components/AppNavbar.vue'
 import GlassCard from '@/components/GlassCard.vue'
 import { useSettingsStore } from '@/stores/settings'
@@ -55,6 +56,18 @@ watch(() => route.path, () => {
         </GlassCard>
       </aside>
       </div>
+      <!-- 备案信息 -->
+      <footer v-if="settings.settings.icp_no || settings.settings.police_no" class="layout-footer">
+        <a v-if="settings.settings.icp_no" :href="settings.settings.icp_url || '#'" target="_blank" rel="noopener">
+          {{ settings.settings.icp_no }}
+        </a>
+        <Dot v-if="settings.settings.icp_no && settings.settings.police_no" :size="16" class="footer-sep" />
+        <a v-if="settings.settings.police_no" :href="settings.settings.police_url || '#'" target="_blank" rel="noopener">
+          <img v-if="settings.settings.police_logo" :src="settings.settings.police_logo" alt="公安备案" class="footer-police-img" />
+          <Shield v-else :size="14" class="footer-police-icon" />
+          {{ settings.settings.police_no }}
+        </a>
+      </footer>
     </el-scrollbar>
   </main>
 </template>
@@ -175,5 +188,40 @@ watch(() => route.path, () => {
   .layout-sidebar {
     display: none;
   }
+}
+.layout-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: var(--sp-4) var(--sp-5) var(--sp-5);
+  font-size: var(--fs-xs);
+  color: var(--text-secondary);
+}
+.layout-footer a {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--text-secondary);
+  transition: color var(--dur-fast) var(--ease-out);
+}
+.layout-footer a:hover {
+  color: var(--accent);
+}
+.footer-sep {
+  color: var(--text-disabled);
+  flex-shrink: 0;
+}
+.footer-police-icon {
+  flex-shrink: 0;
+}
+.footer-police-img {
+  width: 16px;
+  height: auto;
+  object-fit: contain;
+  flex-shrink: 0;
 }
 </style>

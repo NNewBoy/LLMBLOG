@@ -42,6 +42,7 @@ function init() {
   chart.setOption(props.option)
   resizeObserver = new ResizeObserver(() => chart?.resize())
   resizeObserver.observe(el.value)
+  window.addEventListener('resize', handleResize)
 }
 
 function applyTheme() {
@@ -51,6 +52,10 @@ function applyTheme() {
   base.textStyle = { color: c.text }
   base.color = base.color || ['#6366f1', '#22c55e', '#f59e0b', '#ef4444', '#0ea5e9', '#a855f7']
   chart.setOption(base, true)
+}
+
+function handleResize() {
+  chart?.resize()
 }
 
 watch(
@@ -63,6 +68,7 @@ watch(
 
 onMounted(init)
 onBeforeUnmount(() => {
+  window.removeEventListener('resize', handleResize)
   resizeObserver?.disconnect()
   chart?.dispose()
   chart = null

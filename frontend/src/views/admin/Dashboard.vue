@@ -266,7 +266,7 @@ async function loadTop() {
   loadingTop.value = true
   topErr.value = ''
   try {
-    topNotes.value = await getTopNotes(5)
+    topNotes.value = await getTopNotes(days.value, 5)
   } catch {
     topErr.value = '加载失败'
   } finally {
@@ -288,7 +288,7 @@ async function loadEntry() {
 
 async function changeDays(d: number) {
   days.value = d
-  await Promise.all([loadVisitors(), loadTerminals(), loadEntry()])
+  await Promise.all([loadVisitors(), loadTerminals(), loadEntry(), loadTop()])
 }
 
 function refreshAllCharts() {

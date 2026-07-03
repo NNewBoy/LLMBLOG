@@ -42,6 +42,7 @@ def _sync_tags(db: Session, note: Note, tag_ids: list[int]):
 def list_notes(
     keyword: str | None = Query(default=None),
     tag_id: int | None = Query(default=None),
+    tag_ids: str | None = Query(default=None),
     page: int = Query(1, ge=1),
     page_size: int = Query(10, ge=1, le=50),
     db: Session = Depends(get_db),
@@ -50,8 +51,14 @@ def list_notes(
     if keyword:
         like = f"%{keyword}%"
         q = q.filter(or_(Note.title.like(like), Note.summary.like(like), Note.content.like(like)))
+    # 支持单 tag_id（兼容旧版）或多 tag_ids（逗号分隔）
+    ids: list[int] = []
     if tag_id:
-        q = q.filter(Note.tags.any(Tag.id == tag_id))
+        ids.append(tag_id)
+    if tag_ids:
+        ids.extend([int(x.strip()) for x in tag_ids.split(",") if x.strip().isdigit()])
+    if ids:
+        q = q.filter(Note.tags.any(Tag.id.in_(ids)))
     total = q.count()
     items = (
         q.order_by(desc(Note.is_pinned), desc(Note.created_at))

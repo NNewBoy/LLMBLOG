@@ -41,6 +41,7 @@ export const recordEntryClick = (target: string) =>
 export interface NoteQuery {
   keyword?: string
   tag_id?: number
+  tag_ids?: string
   page?: number
   page_size?: number
 }
@@ -87,8 +88,8 @@ export const deleteImage = (id: number) => request.delete<unknown, any>(`/images
 export const getOverview = () => request.get<unknown, Overview>('/stats/overview')
 export const getVisitors = (days = 30) =>
   request.get<unknown, DayPoint[]>('/stats/visitors', { params: { days } })
-export const getTopNotes = (limit = 5) =>
-  request.get<unknown, TopNote[]>('/stats/top-notes', { params: { limit } })
+export const getTopNotes = (days = 30, limit = 5) =>
+  request.get<unknown, TopNote[]>('/stats/top-notes', { params: { days, limit } })
 export const getTerminals = (days = 30) =>
   request.get<unknown, TerminalPoint[]>('/stats/terminals', { params: { days } })
 export const getEntryStats = (days = 30) =>
