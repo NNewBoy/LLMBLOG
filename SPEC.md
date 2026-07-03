@@ -534,7 +534,7 @@ settings (单行配置表)
 
 ---
 
-## 附录 B：实现状态跟踪（2026-07-02 快照）
+## 附录 B：实现状态跟踪（2026-07-03 快照）
 
 > 状态图例：✅ 已完成 ｜ 🚧 部分完成 ｜ ⬜ 待开发
 > 本附录记录 SPEC 落地情况，标注关键偏差与说明，作为后续迭代的基线。
@@ -579,7 +579,7 @@ settings (单行配置表)
 | `/api/v1/tags` | ✅ | CRUD |
 | `/api/v1/comments` | ✅ | list_by_note / create / like / toggle_hide / list_all / delete |
 | `/api/v1/images` | ✅ | list / upload / delete |
-| `/api/v1/stats` | ✅ | overview / visitors / top-notes / terminals（终端分布，M3 新增） |
+| `/api/v1/stats` | ✅ | overview / visitors / top-notes / terminals（终端分布）/ entry（入口点击统计，按入口标题聚合） |
 | `/api/v1/settings` | ✅ | 读取 + 更新 |
 | 统一响应 `{code,message,data}` | ✅ | 全局异常处理器封装 |
 | OpenAPI 自动文档 | ✅ | `/docs` `/openapi.json` |
@@ -590,7 +590,7 @@ settings (单行配置表)
 | --- | --- | --- |
 | M1 基础架构 | ✅ | 前后端骨架、主题、布局、路由、鉴权全部落地 |
 | M2 内容前台 | ✅ | 首页/标签/时间线/搜索可用；NoteDetail 已接入 Markdown 渲染 / TOC / 阅读进度 / 回顶 / 代码复制 / 图片灯箱 / 上下篇 / 评论区；搜索关键词高亮 |
-| M3 后台管理 | ✅ | 笔记/图片/标签/评论/设置可用；Dashboard 已接入 ECharts（访客趋势/终端分布/Top 笔记）；NoteEdit 已接入自动保存/Ctrl+S/离开确认 |
+| M3 后台管理 | ✅ | 笔记/图片/标签/评论/设置可用；Dashboard 已接入 ECharts（访客趋势/终端分布/Top 笔记/入口访客统计）；NoteEdit 已接入自动保存/Ctrl+S/离开确认 |
 | M4 优化打磨 | ✅ | 性能：Vite manualChunks 分包✅（vditor/echarts/element-plus 独立 chunk，主入口 1.2MB→9KB）；安全：后端安全响应头中间件✅（CSP/X-Frame-Options/COOP/Permissions-Policy）；动效：reduced-motion 全量化✅；可访问性：skip-link✅ / aria-label✅ / 主题对比度调至 WCAG AA✅ / heading 层级修正（每页唯一 h1、无跨级跳层、NoteCard→h2、CommentSection→h2）；375px 响应式✅（admin header flex-wrap / el-dialog max-width / el-table 横滚 / 375px padding 缩减）；Lighthouse CI✅（lighthouserc.cjs + npm run lhci，a11y 断言 minScore 0.85）。虚拟滚动经评估不引入（分页已覆盖长列表） |
 | M5 部署上线 | ✅ | Nginx 生产配置（deploy/nginx.conf：SPA fallback / /api 反代 / /uploads 直出 / gzip / 安全头 / proxy_hide_header 防重复 / 静态长缓存）；SQLite 备份脚本（deploy/backup.ps1 + backup.sh：WAL checkpoint TRUNCATE + 安全拷贝 + gzip 压缩 + 按天数保留策略）；Docker 容器化（backend/Dockerfile + Dockerfile.nginx 多阶段构建 + docker-compose.yml + .dockerignore）；环境变量示例（backend/.env.example）；README 部署章节（Docker Compose / 裸金属 / systemd / cron 备份 / Lighthouse CI） |
 
@@ -614,3 +614,6 @@ settings (单行配置表)
 16. **Nginx 生产配置（M5）**：`deploy/nginx.conf` 统一入口——前端 `root /var/www/llmblog` + `try_files` SPA fallback；`/api/` 反代 `127.0.0.1:8000`（Docker 构建时 `sed` 替换为 `backend:8000`）；`/uploads/` 直出 `alias` 避免反代开销；server 级安全头 + `proxy_hide_header` 剥离后端重复头；gzip + 静态资源 `expires 30d`。
 17. **SQLite 备份（M5）**：`deploy/backup.sh`（Linux，sqlite3 CLI `.backup` 安全拷贝）+ `deploy/backup.ps1`（Windows，Python `sqlite3` 模块 + `shutil.copy2`）。两者均先 `PRAGMA wal_checkpoint(TRUNCATE)` 合并 WAL，再压缩（gzip / Compress-Archive），按 `RETAIN_DAYS` 自动清理。
 18. **Docker 容器化（M5）**：`backend/Dockerfile`（python:3.12-slim + uvicorn）；`Dockerfile.nginx` 多阶段（node:20-alpine `npm ci && npm run build` → nginx:alpine 拷贝 dist + nginx.conf + sed 替换 upstream）；`docker-compose.yml` 两服务（backend + nginx）+ 双 volume（db-data 持久 SQLite、uploads 共享图片 nginx 只读挂载）。
+19. **移动端抽屉统一（AppDrawer）**：新增 `components/AppDrawer.vue` 封装 `el-drawer`，前台 AppNavbar 与后台 AdminLayout 的移动端抽屉统一复用，含品牌区 + 导航链接 + 当前项 `--accent` 左侧指示条；取代原先各布局自建的 scrim/drawer 实现。
+20. **页面滚动架构**：`body` 固定 `100vh` 且系统滚动条隐藏，页面滚动由 `el-scrollbar` 接管（FrontLayout / AdminLayout），路由切换时 `setScrollTop(0)` 自动回顶；新增 `--distance-nav-h` / `--distance-nav-h-mobile` 令牌（navbar 58px + wrapper padding）统一固定栏下方内容偏移；`--navbar-h` 由 64px 调至 58px，菜单栏样式跨布局统一。
+21. **入口访客统计**：Dashboard 新增「入口访客统计」横向条形图（第 4 张图表），数据来自 `/stats/entry`；后端将 `target` URL 经 settings `entry_links` 映射为入口标题（`/`→「Blog 主页」、`/admin`→「Blog 后台」+ 配置项）返回 `title`，前端按标题聚合展示。

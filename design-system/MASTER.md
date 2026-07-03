@@ -287,7 +287,7 @@
 
 ---
 
-## 12. 实现状态落地（2026-07-02 快照）
+## 12. 实现状态落地（2026-07-03 快照）
 
 > 本节记录设计令牌与组件在代码中的落地情况，作为设计与实现的对齐基线。
 > 状态图例：✅ 已落地 ｜ 🚧 部分 ｜ ⬜ 待开发
@@ -298,7 +298,7 @@
 | --- | --- | --- | --- |
 | 色彩语义令牌（§1） | `frontend/src/styles/variables.css` | ✅ | 全套 `--accent / --surface / --text-* / --border / --shadow*` 已定义，浅/深双主题通过 `[data-theme]` 切换 |
 | 字体令牌（§2） | `variables.css` | ✅ | Inter / Noto Sans SC / JetBrains Mono 已配置 |
-| 间距栅格（§3） | `variables.css` | ✅ | 4/8dp 令牌 `--space-1..--space-16` 全量定义 |
+| 间距栅格（§3） | `variables.css` | ✅ | 4/8dp 令牌 `--space-1..--space-16` 全量定义；新增 `--distance-nav-h` / `--distance-nav-h-mobile`（navbar 58px + wrapper padding）统一固定栏下方内容偏移；`--navbar-h` 由 64px 调至 58px |
 | 圆角令牌（§3） | `variables.css` | ✅ | `--radius-sm/md/lg/full` |
 | 玻璃效果（§4） | `frontend/src/styles/glass.css` | ✅ | `.glass` 与 `.glass-interactive` 含 `backdrop-filter: blur()+saturate()`，`@supports` 降级为实色 + 描边 |
 | 动效令牌（§5） | `variables.css` | ✅ | `--dur-fast/base/slow` + `--ease-out/in/spring` |
@@ -313,7 +313,7 @@
 | --- | --- | --- | --- |
 | GlassCard | `.glass` 通用类 | ✅ | 各页面直接使用类名 |
 | AppNavbar | `components/AppNavbar.vue` | ✅ | 含移动 Drawer + 全屏搜索弹层 |
-| AppDrawer | Element Plus `el-drawer` | ✅ | 复用组件库 |
+| AppDrawer | `frontend/src/components/AppDrawer.vue` | ✅ | 自定义抽屉（封装 `el-drawer`），前台 AppNavbar / 后台 AdminLayout 移动端复用，含品牌区 + 导航链接 + 当前项 `--accent` 指示条 |
 | NoteCard | `views/front/Home.vue` 内联 | ✅ | 卡片错峰入场 + 置顶徽章 |
 | TagCloud | `views/front/Tags.vue` | ✅ | |
 | Timeline | `views/front/Timeline.vue` | ✅ | |
@@ -354,3 +354,4 @@
 6. 对比度自动化验证（接入 axe-core / Lighthouse CI）待办。
 7. Vite manualChunks 已分包（vditor/echarts/element-plus 独立 chunk）；虚拟滚动决策不引入（分页覆盖长列表）。✅
 8. 入口页（/entry）已实现 Glassmorphism 门户，含 Blog 主页/后台入口 + 配置化跳转链接，后台 Settings 支持增删 entry_links；Visitor 模型扩展 source/target 字段支持入口点击统计。✅
+9. 页面滚动架构统一：`body` 固定 `100vh` 且系统滚动条隐藏，页面滚动由 `el-scrollbar` 接管（FrontLayout / AdminLayout），路由切换 `setScrollTop(0)` 自动回顶；前台/后台移动端抽屉统一为 `AppDrawer.vue` 组件复用。✅

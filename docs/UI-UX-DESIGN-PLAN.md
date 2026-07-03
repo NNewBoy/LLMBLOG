@@ -28,6 +28,7 @@
 
 - FrontLayout：顶部栏 + 主内容 + 右侧侧边栏（移动端隐藏）；详情页主内容右侧再嵌 TOC。
 - AdminLayout：左侧侧边栏菜单 + 顶部栏（标题/用户/退出）+ 主内容。
+- 页面滚动：`body` 固定 100vh、系统滚动条隐藏，页面滚动由 `el-scrollbar` 接管（FrontLayout / AdminLayout），路由切换自动回顶；新增 `--distance-nav-h` / `--distance-nav-h-mobile` 令牌统一固定栏下方内容偏移。
 - 入口页 `/entry`：独立全屏 Glassmorphism 布局（无导航栏），仅含顶栏 + Hero + 入口卡片网格，适合作为门户起点的独立路由。
 - 路由切换淡入 220ms（`--dur-base`），`<router-view>` 用 `<Transition name="fade">`。
 - 路由懒加载按视图分包（`lazy-loading`、`bundle-splitting`）。
@@ -172,6 +173,7 @@
 - 访客量日线图（ECharts）：可切换 7/30/90 天；折线 + 面积渐变；tooltip 显示精确值；图例可点击切换 `[legend-interactive]`；空数据 EmptyState `[empty-data-state]`；加载用 Skeleton `[loading-chart]`。
 - 热门笔记 Top 5：横向条形图或列表（标题 + PV bar）。
 - 终端分布饼图：≤5 类，否则改条形图 `[no-pie-overuse]`；配图案/纹理补充区分 `[pattern-texture]`。
+- 入口访客统计条形图：各入口标题的点击量分布（数据来自 `/stats/entry`，按 title 聚合，含空/载/错三态）。
 - 图表色用可访问调色板（避免红绿独占）`[color-guidance]`；数据标签 ≥4.5:1 `[contrast-data]`。
 - 图表响应式：小屏折线减少刻度、饼图改条形 `[responsive-chart]`。
 
@@ -290,13 +292,13 @@
 
 ## 7. 实施顺序（对齐 SPEC §10 里程碑）
 
-> 状态图例：✅ 已完成 ｜ 🚧 部分完成 ｜ ⬜ 待开发（快照：2026-07-02）
+> 状态图例：✅ 已完成 ｜ 🚧 部分完成 ｜ ⬜ 待开发（快照：2026-07-03）
 
 | 阶段 | UI/UX 交付 | 状态 | 实现说明 |
 | --- | --- | --- | --- |
 | M1 基础 | 主题令牌、`.glass`、布局（FrontLayout/AdminLayout）、顶部栏、Drawer、ThemeToggle、Toast、Skeleton、EmptyState、路由守卫登录页 | ✅ | `variables.css` + `glass.css` + `element-overrides.css` 落地；AppNavbar/AdminLayout 含移动 Drawer；ThemeToggle 含跟随系统；ElMessage 充当 Toast；Skeleton/EmptyState 由 Element Plus 提供；路由守卫 `requiresAuth` + 401 重定向 |
 | M2 前台 | NoteCard、首页、标签云页、时间线页、搜索弹层、详情页（TOC/BackToTop/ReadingProgress/代码复制/图片预览）、评论区、入口页（`/entry` Glassmorphism 门户 + 主题传递 + 点击统计） | ✅ | 首页/标签云/时间线/搜索弹层 ✅；NoteDetail 已接入 Vditor.preview 渲染 + TOC 滚动高亮 + 阅读进度条 + 回顶 FAB + 代码块复制 + 图片懒加载/灯箱 + 上下篇导航 + 评论区（CommentSection）；搜索页关键词高亮；入口页 Entry.vue（Blog/后台卡片 + 配置化跳转链接 + 主题参数拼接 + 点击记录 + 移动端适配） |
-| M3 后台 | AdminLayout、Dashboard（StatCard+图表）、笔记列表+编辑（Vditor+自动保存）、图片管理、标签管理、评论管理、系统设置 + 入口页配置编辑器 | ✅ | AdminLayout/笔记 CRUD/图片/标签/评论/设置 ✅；Dashboard 已接入 ECharts（访客趋势折线/终端分布饼/Top 笔记条形 + 三态 + 主题联动）；NoteEdit 已接 Vditor + 自动保存(localStorage 30s 节流) + Ctrl/S + 离开确认；Settings 新增入口页配置（entry_links 增删行编辑器） |
+| M3 后台 | AdminLayout、Dashboard（StatCard+图表）、笔记列表+编辑（Vditor+自动保存）、图片管理、标签管理、评论管理、系统设置 + 入口页配置编辑器 | ✅ | AdminLayout/笔记 CRUD/图片/标签/评论/设置 ✅；Dashboard 已接入 ECharts（访客趋势折线/终端分布饼/Top 笔记条形/入口访客统计条形 + 三态 + 主题联动）；NoteEdit 已接 Vditor + 自动保存(localStorage 30s 节流) + Ctrl/S + 离开确认；Settings 新增入口页配置（entry_links 增删行编辑器） |
 | M4 打磨 | 动效错峰、虚拟滚动、可访问性扫描、深色对比验证、375px/横屏测试、reduced-motion、性能（懒加载/分包） | ✅ | 性能：Vite manualChunks 分包✅（主入口 1.2MB→9KB）；动效：reduced-motion 全量化✅；可访问性：skip-link✅ + aria-label✅ + 对比度 WCAG AA✅ + heading 层级修正✅（每页唯一 h1、无跨级）；375px 响应式✅（header flex-wrap / dialog max-width / 表格横滚 / 超窄屏 padding）；Lighthouse CI✅（lighthouserc.cjs + a11y 断言 0.85）。虚拟滚动经评估不引入（分页已覆盖） |
 | M5 上线 | 打包、Nginx、备份、Docker | ✅ | Nginx 生产配置✅（deploy/nginx.conf）；SQLite 备份脚本✅（backup.sh + backup.ps1，WAL checkpoint + 压缩 + 保留策略）；Docker 容器化✅（多阶段构建 + docker-compose + .dockerignore）；环境变量示例✅ + README 部署章节✅ |
 
@@ -305,7 +307,7 @@
 ## 8. 验收清单（按页面）
 
 > 每页交付前过 MASTER §11 + 本节专项。
-> 快照：2026-07-02。✅ = 已通过 ｜ 🚧 = 部分 ｜ ⬜ = 未做
+> 快照：2026-07-03。✅ = 已通过 ｜ 🚧 = 部分 ｜ ⬜ = 未做
 
 **首页**：[✅] 卡片错峰入场  [✅] 置顶徽章带图标  [✅] 分页/无限滚动 Skeleton  [✅] 空状态  
 **详情**：[✅] 阅读进度条  [✅] 代码复制反馈  [✅] 图片懒加载+预览  [✅] TOC 高亮+平滑滚动  [✅] 回到顶部  [✅] 评论提交+防刷（蜜罐+限流）  
@@ -316,7 +318,7 @@
 
 ---
 
-## 9. 实现状态与后续待办（2026-07-02）
+## 9. 实现状态与后续待办（2026-07-03）
 
 ### 9.1 已落地组件 / 页面
 
@@ -327,6 +329,7 @@
 | Element Plus 主题桥接 | `frontend/src/styles/element-overrides.css` | ✅ |
 | 顶栏（前台） | `frontend/src/components/AppNavbar.vue`（移动 Drawer + 全屏搜索） | ✅ |
 | 布局 | `FrontLayout.vue` / `AdminLayout.vue` | ✅ |
+| 移动端抽屉 | `frontend/src/components/AppDrawer.vue`（封装 el-drawer，前台 AppNavbar / 后台 AdminLayout 复用） | ✅ |
 | 主题切换 | `frontend/src/stores/theme.ts` + `ThemeToggle` | ✅ |
 | 路由守卫 | `frontend/src/router/index.ts` | ✅ |
 | 登录页 | `frontend/src/views/auth/Login.vue`（SHA256 预哈希） | ✅ |
