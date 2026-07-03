@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, onBeforeUnmount, ref, watch, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Eye, MessageCircle, ArrowLeft, ArrowUp, ChevronLeft, ChevronRight } from 'lucide-vue-next'
+import { Eye, MessageCircle, ArrowLeft, ArrowUp, ChevronLeft, ChevronRight, Loader2 } from 'lucide-vue-next'
 import { getNote } from '@/api'
 import type { NoteDetail } from '@/types'
 import GlassCard from '@/components/GlassCard.vue'
@@ -27,6 +27,7 @@ const toc = ref<TocItem[]>([])
 const activeTocId = ref('')
 const showTop = ref(false)
 const progress = ref(0)
+const rendering = ref(false)
 
 const lightboxSrc = ref('')
 const lightboxAlt = ref('')
@@ -67,20 +68,23 @@ async function load() {
 
 async function renderContent() {
   if (!note.value || !contentEl.value) return
+  rendering.value = true
   const el = contentEl.value
   const content = note.value.content
   const Vditor = (await import('vditor')).default
   await import('vditor/dist/index.css')
   const isDark = themeStore.theme === 'dark'
   await Vditor.preview(el, content, {
+    cdn: '/vditor',
     mode: themeStore.theme,
     theme: { current: themeStore.theme },
     hljs: { lineNumber: true, style: isDark ? 'github-dark' : 'github' },
-    lazyLoadImage: 'https://cdn.jsdelivr.net/npm/vditor/dist/images/img-loading.svg',
+    lazyLoadImage: '/vditor/dist/images/img-loading.svg',
   })
   buildToc(el)
   enhanceImages(el)
   bindScroll()
+  rendering.value = false
 }
 
 function buildToc(root: HTMLElement) {
@@ -222,6 +226,9 @@ onBeforeUnmount(unbindScroll)
             <span v-for="t in note.tags" :key="t.id" class="tag">{{ t.name }}</span>
           </div>
           <div ref="contentEl" />
+          <div v-if="rendering" class="render-loading">
+            <Loader2 :size="20" class="spin" /> 正文渲染中…
+          </div>
 
           <!-- 上下篇 -->
           <nav v-if="note.prev || note.next" class="prevnext" aria-label="上下篇导航">
@@ -521,6 +528,22 @@ onBeforeUnmount(unbindScroll)
 .empty .back {
   margin-top: var(--sp-3);
   justify-content: center;
+}
+
+.render-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
+  padding: var(--sp-6) 0;
+  color: var(--text-secondary);
+  font-size: var(--fs-sm);
+}
+.spin {
+  animation: spin 1s linear infinite;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 
 /* 过渡 */

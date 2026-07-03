@@ -73,8 +73,9 @@ async function submit() {
       composer.value.content = ''
       ElMessage.success('评论成功')
     }
-  } catch {
-    ElMessage.error('提交失败，请稍后再试')
+  } catch (e: any) {
+    const msg = e?.response?.data?.message || e?.message || ''
+    ElMessage.error(msg || '提交失败，请稍后再试')
   } finally {
     submitting.value = false
   }
@@ -100,8 +101,9 @@ async function submitReply(parent: Comment) {
       replyTarget.value = null
       ElMessage.success('回复成功')
     }
-  } catch {
-    ElMessage.error('回复失败，请稍后再试')
+  } catch (e: any) {
+    const msg = e?.response?.data?.message || e?.message || ''
+    ElMessage.error(msg || '回复失败，请稍后再试')
   } finally {
     submitting.value = false
   }
@@ -190,7 +192,7 @@ onMounted(() => load(true))
             <div v-if="replyTarget && replyTarget.id === c.id" class="reply-box">
               <input v-model="replyForm.nickname" class="input" placeholder="昵称（可选）" maxlength="32" />
               <input v-model="replyForm.website" class="input hp" tabindex="-1" autocomplete="off" aria-hidden="true" />
-              <textarea v-model="replyForm.content" class="textarea" rows="2" placeholder="回复 @{{ c.nickname || '匿名访客' }}…" maxlength="500" />
+              <textarea v-model="replyForm.content" class="textarea" rows="2" :placeholder="`回复 @${c.nickname || '匿名访客'}…`" maxlength="500" />
               <div class="reply-foot">
                 <button class="ghost-btn" @click="cancelReply">取消</button>
                 <button class="send-btn sm" :disabled="submitting" @click="submitReply(c)">回复</button>

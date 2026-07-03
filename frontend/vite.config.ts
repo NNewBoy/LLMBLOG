@@ -1,9 +1,44 @@
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import { fileURLToPath, URL } from 'node:url'
+import { cpSync, existsSync, readFileSync } from 'node:fs'
+import { resolve, join } from 'node:path'
 
 export default defineConfig({
-  plugins: [vue()],
+  plugins: [
+    vue(),
+    {
+      name: 'copy-vditor-assets',
+      apply: 'build',
+      closeBundle() {
+        const src = resolve('node_modules/vditor/dist')
+        const dest = resolve('dist/vditor/dist')
+        if (existsSync(src)) {
+          cpSync(src, dest, { recursive: true })
+        }
+      },
+    },
+    {
+      name: 'serve-vditor-assets',
+      apply: 'serve',
+      configureServer(server) {
+        const src = resolve('node_modules/vditor')
+        server.middlewares.use('/vditor', (req, res, next) => {
+          if (!existsSync(src)) return next()
+          const url = new URL(req.url!, 'http://localhost')
+          const filePath = join(src, url.pathname)
+          if (!existsSync(filePath)) return next()
+          const ext = url.pathname.split('.').pop() || ''
+          const mime: Record<string, string> = {
+            js: 'application/javascript', css: 'text/css', svg: 'image/svg+xml',
+            woff: 'font/woff', woff2: 'font/woff2', ttf: 'font/ttf', png: 'image/png',
+          }
+          res.setHeader('Content-Type', mime[ext] || 'application/octet-stream')
+          res.end(readFileSync(filePath))
+        })
+      },
+    },
+  ],
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),

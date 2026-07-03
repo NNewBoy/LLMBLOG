@@ -26,7 +26,7 @@ async function submit() {
     const redirect = (route.query.redirect as string) || '/admin/dashboard'
     router.push(redirect)
   } catch (e: any) {
-    error.value = e?.message || '登录失败'
+    error.value = e?.response?.data?.message || e?.message || '登录失败'
   } finally {
     loading.value = false
   }
@@ -58,7 +58,7 @@ async function submit() {
           </button>
         </div>
         <p v-if="error" id="pwd-err" class="error" role="alert">{{ error }}</p>
-        <p v-else class="hint">默认密码：admin（开发用，请尽快修改）</p>
+        <p v-else class="hint" />
         <button class="submit" type="submit" :disabled="loading">
           {{ loading ? '登录中…' : '登 录' }}
         </button>
@@ -150,11 +150,12 @@ async function submit() {
   margin: var(--sp-2) 0;
   color: var(--error);
   font-size: var(--fs-sm);
+  line-height: var(--fs-ls);
 }
 .hint {
   margin: var(--sp-2) 0;
   color: var(--text-secondary);
-  font-size: var(--fs-xs);
+  height: var(--fs-lg);
 }
 .submit {
   width: 100%;

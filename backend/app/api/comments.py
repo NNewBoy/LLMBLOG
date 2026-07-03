@@ -14,9 +14,9 @@ from app.schemas.comment import CommentCreate
 
 router = APIRouter(prefix="/comments", tags=["comments"])
 
-# IP 限流：[最后评论时间戳]
-_rate: dict[str, list] = defaultdict(lambda: [0.0])
-MAX_PER_MIN = 3
+# IP 限流：记录最近 60s 内的评论时间戳
+_rate: dict[str, list[float]] = defaultdict(list)
+MAX_PER_MIN = 5
 
 
 @router.get("/by-note/{note_id}")
@@ -52,10 +52,11 @@ def create_comment(
 
     ip = client_ip(request)
     now = time.time()
-    state = _rate[ip]
-    if now - state[0] < 60 and state[0] and _count_recent(_rate, ip, now) >= MAX_PER_MIN:
+    # 清理过期记录并检查 60s 窗口内评论数
+    _rate[ip] = [t for t in _rate[ip] if now - t < 60]
+    if len(_rate[ip]) >= MAX_PER_MIN:
         return fail("评论太快啦，稍后再试", code=429, status=429)
-    state[0] = now
+    _rate[ip].append(now)
 
     ua = request.headers.get("user-agent", "")
     is_author = _is_author(db, body.nickname)
@@ -74,11 +75,6 @@ def create_comment(
     db.commit()
     db.refresh(c)
     return ok(c.to_dict(include_replies=False))
-
-
-def _count_recent(store: dict, ip: str, now: float) -> int:
-    # 简化：仅按最后时间戳，配合 MAX_PER_MIN
-    return MAX_PER_MIN if (now - store[0] < 60) else 1
 
 
 def _is_author(db: Session, nickname: str) -> bool:

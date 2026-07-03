@@ -26,14 +26,17 @@ request.interceptors.response.use(
     return body
   },
   (err: AxiosError<R>) => {
+    const status = err.response?.status
+    const msg = err.response?.data?.message || err.message || '服务器错误'
+    if (status !== 429) {
+      ElMessage.error(msg)
+    }
     if (err.response?.status === 401) {
       sessionStorage.removeItem('admin_token')
       if (location.pathname.startsWith('/admin') && location.pathname !== '/admin/login') {
         location.href = '/admin/login'
       }
     }
-    const msg = err.response?.data?.message || err.message || '网络错误'
-    ElMessage.error(msg)
     return Promise.reject(err)
   },
 )
