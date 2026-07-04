@@ -1,4 +1,4 @@
-import{K as y}from"./vendor-C-BVxPBC.js";/**
+import{K as y}from"./vendor-MlNz0djl.js";/**
  * @license lucide-vue-next v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
