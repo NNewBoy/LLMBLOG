@@ -9,6 +9,7 @@ import Skeleton from '@/components/Skeleton.vue'
 import CommentSection from '@/components/CommentSection.vue'
 import { useThemeStore } from '@/stores/theme'
 import { renderMarkdown, loadHighlightTheme } from '@/utils/markdown'
+import 'katex/dist/katex.css'
 
 interface TocItem {
   id: string
@@ -72,13 +73,33 @@ async function renderContent() {
   rendering.value = true
   const el = contentEl.value
   // 加载 highlight.js 主题 CSS
-  await loadHighlightTheme(themeStore.theme === 'dark' ? 'dark' : 'light')
+  loadHighlightTheme(themeStore.theme === 'dark' ? 'dark' : 'light')
   // 用 markdown-it 渲染（同步，极快）
   el.innerHTML = renderMarkdown(note.value.content)
   buildToc(el)
   enhanceImages(el)
+  renderMermaid(el)
   bindScroll()
   rendering.value = false
+}
+
+/** 异步渲染 Mermaid 图表 */
+async function renderMermaid(root: HTMLElement) {
+  const mermaidEls = root.querySelectorAll('.mermaid')
+  if (!mermaidEls.length) return
+  const mermaid = (await import('mermaid')).default
+  mermaid.initialize({ startOnLoad: false, theme: themeStore.theme === 'dark' ? 'dark' : 'default' })
+  mermaidEls.forEach((el, i) => {
+    const code = el.textContent || ''
+    const id = `mermaid-${i}`
+    try {
+      mermaid.render(id, code).then(({ svg }: { svg: string }) => {
+        el.innerHTML = svg
+      })
+    } catch {
+      el.innerHTML = `<pre>Mermaid 渲染失败</pre>`
+    }
+  })
 }
 
 function buildToc(root: HTMLElement) {
@@ -312,6 +333,9 @@ onBeforeUnmount(unbindScroll)
   position: relative;
   min-width: 0;
 }
+.article .markdown-body {
+  padding: var(--sp-4);
+}
 .back {
   display: inline-flex;
   align-items: center;
@@ -328,6 +352,7 @@ onBeforeUnmount(unbindScroll)
   color: var(--accent);
 }
 .title {
+  text-align: center;
   margin: 0 0 var(--sp-3);
   font-size: var(--fs-xl);
   font-weight: 700;
@@ -335,6 +360,7 @@ onBeforeUnmount(unbindScroll)
 }
 .meta {
   display: flex;
+  justify-content: center;
   flex-wrap: wrap;
   gap: var(--sp-3);
   color: var(--text-secondary);
@@ -521,86 +547,7 @@ onBeforeUnmount(unbindScroll)
   justify-content: center;
 }
 
-/* Markdown 正文排版 */
-.markdown-body {
-  line-height: 1.8;
-  color: var(--text);
-  font-size: var(--fs-base);
-  word-break: break-word;
-}
-.markdown-body :deep(h1),
-.markdown-body :deep(h2),
-.markdown-body :deep(h3),
-.markdown-body :deep(h4),
-.markdown-body :deep(h5),
-.markdown-body :deep(h6) {
-  margin: var(--sp-5) 0 var(--sp-3);
-  font-weight: 600;
-  line-height: 1.4;
-  scroll-margin-top: 80px;
-}
-.markdown-body :deep(h1) { font-size: var(--fs-lg); }
-.markdown-body :deep(h2) {
-  font-size: var(--fs-md);
-  padding-bottom: 6px;
-  border-bottom: 1px solid var(--border);
-}
-.markdown-body :deep(h3) { font-size: var(--fs-base); }
-.markdown-body :deep(p) { margin: var(--sp-3) 0; }
-.markdown-body :deep(a) { color: var(--accent); text-decoration: none; }
-.markdown-body :deep(a:hover) { text-decoration: underline; }
-.markdown-body :deep(blockquote) {
-  margin: var(--sp-4) 0;
-  padding: var(--sp-2) var(--sp-4);
-  border-left: 3px solid var(--accent);
-  background: var(--accent-soft);
-  color: var(--text-secondary);
-  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
-}
-.markdown-body :deep(code) {
-  padding: 2px 6px;
-  border-radius: var(--radius-sm);
-  background: var(--surface-hover);
-  font-family: var(--font-mono);
-  font-size: 0.9em;
-}
-.markdown-body :deep(pre) {
-  margin: var(--sp-4) 0;
-  padding: var(--sp-4);
-  border-radius: var(--radius-sm);
-  background: var(--bg);
-  overflow-x: auto;
-  border: 1px solid var(--border);
-}
-.markdown-body :deep(pre code) { padding: 0; background: transparent; }
-.markdown-body :deep(ul),
-.markdown-body :deep(ol) { margin: var(--sp-3) 0; padding-left: var(--sp-5); }
-.markdown-body :deep(li) { margin: var(--sp-1) 0; }
-.markdown-body :deep(table) {
-  display: table;
-  width: 100%;
-  margin: var(--sp-4) 0;
-  border-collapse: collapse;
-}
-.markdown-body :deep(th),
-.markdown-body :deep(td) {
-  padding: var(--sp-2) var(--sp-3);
-  border: 1px solid var(--border);
-  text-align: left;
-  white-space: normal;
-  word-break: break-word;
-}
-.markdown-body :deep(th) { background: var(--surface-hover); font-weight: 600; }
-.markdown-body :deep(img) {
-  max-width: 100%;
-  border-radius: var(--radius-sm);
-  margin: var(--sp-3) 0;
-}
-.markdown-body :deep(hr) {
-  margin: var(--sp-5) 0;
-  border: none;
-  border-top: 1px solid var(--border);
-}
+/* Markdown 正文排版见全局 styles/markdown-body.css */
 
 /* 过渡 */
 .fab-enter-active,

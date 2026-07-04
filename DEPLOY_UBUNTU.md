@@ -11,7 +11,7 @@
 | Node.js | 18+ |
 | Nginx | 1.18+ |
 | 后端端口 | `8000` |
-| Vditor CDN | `/vditor`（构建时自动复制） |
+| 编辑器 | ByteMD（Svelte 内核，~30KB，无需 CDN） |
 
 ---
 
@@ -60,7 +60,7 @@ npm install
 npm run build
 ```
 
-构建产物在 `frontend/dist/`（含 Vditor 资源自动复制到 `dist/vditor/dist/`）。
+构建产物在 `frontend/dist/`（ByteMD 为 Svelte 编译，无需额外 CDN 资源）。
 
 复制静态文件：
 
@@ -143,11 +143,6 @@ server {
 
         proxy_pass http://127.0.0.1:8000/uploads/;
         proxy_set_header Host $host;
-    }
-
-    # Vditor 资源
-    location /vditor/ {
-        root /var/www/llmblog;
     }
 
     # 静态资源缓存

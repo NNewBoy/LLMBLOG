@@ -155,3 +155,8 @@
   background-color: var(--bg) !important;
   border-color: var(--bg) !important;
 }
+
+/* ByteMD 全屏模式 z-index 覆盖（高于 admin topbar） */
+.bytemd-fullscreen {
+  z-index: 9999 !important;
+}

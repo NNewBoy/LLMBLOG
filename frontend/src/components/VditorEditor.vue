@@ -1,113 +1,110 @@
 <script setup lang="ts">
-import { onMounted, onBeforeUnmount, ref, watch } from 'vue'
-import { Loader2 } from 'lucide-vue-next'
+import { computed, watch, onMounted } from 'vue'
+import { Editor } from '@bytemd/vue-next'
+import gfm from '@bytemd/plugin-gfm'
+import highlight from '@bytemd/plugin-highlight'
+import mediumZoom from '@bytemd/plugin-medium-zoom'
+import math from '@bytemd/plugin-math-ssr'
+import mermaid from '@bytemd/plugin-mermaid'
+import zhHans from 'bytemd/locales/zh_Hans.json'
 import { uploadImage } from '@/api'
 import { useThemeStore } from '@/stores/theme'
 import { ElMessage } from 'element-plus'
+import { loadHighlightTheme } from '@/utils/markdown'
 
-const props = defineProps<{ modelValue: string; mode?: 'ir' | 'wysiwyg' | 'sv' }>()
+import 'bytemd/dist/index.css'
+import 'katex/dist/katex.css'
+import 'codemirror/theme/material-darker.css'
+
+const props = defineProps<{ modelValue: string }>()
 const emit = defineEmits<{ (e: 'update:modelValue', v: string): void }>()
-const el = ref<HTMLElement>()
-let vd: any = null
 const themeStore = useThemeStore()
-const loading = ref(true)
 
-onMounted(async () => {
-  const Vditor = (await import('vditor')).default
-  await import('vditor/dist/index.css')
-  vd = new Vditor(el.value!, {
-    value: props.modelValue,
-    mode: props.mode || 'ir',
-    height: 480,
-    toolbar: [
-      'headings', 'bold', 'italic', 'strike', '|',
-      'quote', 'line', 'code', 'inline-code', 'link', 'list', 'ordered-list', 'check', '|',
-      'table', 'record', 'emoji', 'info', 'sub', 'sup', 'br', '|',
-      'undo', 'redo', '|', 'edit-mode', 'preview', 'outline', 'fullscreen',
-    ],
-    cache: { enable: false },
-    cdn: '/vditor',
-    theme: themeStore.theme === 'dark' ? 'dark' : 'classic',
-    preview: {
-      theme: { current: themeStore.theme },
-      hljs: { lineNumber: true, style: themeStore.theme === 'dark' ? 'github-dark' : 'github' },
-    },
-    upload: {
-      url: '/api/v1/images/upload',
-      fieldName: 'file',
-      accept: 'image/*',
-      handler(files: File[]): Promise<null> {
-        return Promise.all(files.map((f) => uploadImage(f))).then((res) => {
-          const succMap: Record<string, string> = {}
-          res.forEach((r) => (succMap[r.filename] = r.url))
-          vd?.insertValue(Object.keys(succMap).map((k) => `![${k}](${succMap[k]})`).join('\n'))
-          return null
-        }).catch(err => {
-          console.error(err)
-          ElMessage.error(err.message)
-          return null
-        })
-      },
-    },
-    input: (val: string) => emit('update:modelValue', val),
-    after: () => { loading.value = false },
-  })
-})
+const isDark = computed(() => themeStore.theme === 'dark')
 
-watch(
-  () => props.modelValue,
-  (v) => {
-    if (!loading.value && v !== vd?.getValue()) vd?.setValue(v)
-  },
-)
+const plugins = computed(() => [
+  gfm(),
+  highlight(),
+  mediumZoom(),
+  math(),
+  mermaid(),
+])
 
-watch(() => themeStore.theme, (t) => {
-  if (loading.value) return
-  const isDark = t === 'dark'
-  vd.setTheme(isDark ? 'dark' : 'classic', t, isDark ? 'github-dark' : 'github')
-})
+// CodeMirror 主题：深色用 material-darker，浅色用默认
+const editorConfig = computed(() => ({
+  theme: isDark.value ? 'material-darker' : 'default',
+}))
 
-onBeforeUnmount(() => {
-  vd?.destroy()
-  vd = null
-})
+function handleChange(v: string) {
+  emit('update:modelValue', v)
+}
+
+async function handleUploadImages(files: File[]) {
+  const results: { title: string; url: string }[] = []
+  for (const file of files) {
+    try {
+      const res = await uploadImage(file)
+      results.push({ title: res.filename, url: res.url })
+    } catch (err: any) {
+      ElMessage.error(err?.message || '图片上传失败')
+    }
+  }
+  return results
+}
+
+// 初始化并跟随主题切换 highlight.js + github-markdown 主题
+onMounted(() => loadHighlightTheme(themeStore.theme === 'dark' ? 'dark' : 'light'))
+watch(() => themeStore.theme, (t) => loadHighlightTheme(t === 'dark' ? 'dark' : 'light'))
 </script>
 
 <template>
-  <div class="vditor-wrap">
-    <div v-if="loading" class="vditor-loading">
-      <Loader2 :size="20" class="spin" /> 编辑器加载中…
-    </div>
-    <div ref="el" />
+  <div class="bytemd-wrap" :class="{ 'bytemd-dark': isDark }">
+    <Editor
+      :key="themeStore.theme"
+      :value="modelValue"
+      :plugins="plugins"
+      :locale="zhHans"
+      :editor-config="editorConfig"
+      :upload-images="handleUploadImages"
+      @change="handleChange"
+    />
   </div>
 </template>
 
 <style scoped>
-.vditor-wrap {
-  position: relative;
+.bytemd-wrap {
   border-radius: var(--radius-md);
   overflow: hidden;
-  min-height: 480px;
 }
-.vditor-loading {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--sp-2);
+.bytemd-wrap :deep(.bytemd) {
   height: 480px;
+  border-color: var(--surface-border);
+}
+.bytemd-wrap :deep(.bytemd-fullscreen) {
+  z-index: 9999;
+}
+
+/* 工具栏 + 容器 + 状态栏深色模式（ByteMD 无内置深色支持） */
+.bytemd-dark :deep(.bytemd) {
+  background: var(--bg);
+  color: var(--text);
+  border-color: var(--border);
+}
+.bytemd-dark :deep(.bytemd-toolbar) {
+  background: var(--surface-hover);
+  border-bottom-color: var(--border);
+}
+.bytemd-dark :deep(.bytemd-toolbar-icon svg) {
   color: var(--text-secondary);
-  font-size: var(--fs-sm);
+}
+.bytemd-dark :deep(.bytemd-toolbar-icon:hover) {
   background: var(--surface);
-  border: 1px solid var(--surface-border);
-  border-radius: var(--radius-md);
 }
-.spin {
-  animation: spin 1s linear infinite;
+.bytemd-dark :deep(.bytemd-status) {
+  border-top-color: var(--border);
+  color: var(--text-secondary);
 }
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-:deep(.vditor) {
-  border-radius: var(--radius-md);
+.bytemd-dark :deep(.bytemd-split .bytemd-preview) {
+  border-left-color: var(--border);
 }
 </style>
