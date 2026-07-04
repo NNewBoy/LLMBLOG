@@ -4,7 +4,7 @@ import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router'
 import { getNote, createNote, updateNote, listTags } from '@/api'
 import type { Tag } from '@/types'
 import VditorEditor from '@/components/VditorEditor.vue'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { ArrowLeft, Save, Cloud } from 'lucide-vue-next'
 
 const route = useRoute()
@@ -100,10 +100,18 @@ onMounted(async () => {
     await nextTick()
     loaded.value = true
   } else {
-    const restored = restoreDraft()
+    // 从导入 Markdown 功能传入的内容
+    const mdContent = route.query.md_content as string
+    const mdTitle = route.query.md_title as string
+    if (mdContent) {
+      form.value.content = mdContent
+      if (mdTitle) form.value.title = mdTitle
+    } else {
+      const restored = restoreDraft()
+      if (restored) dirty.value = true
+    }
     await nextTick()
     loaded.value = true
-    if (restored) dirty.value = true
   }
   window.addEventListener('keydown', onKeydown)
   window.addEventListener('beforeunload', onBeforeUnload)
@@ -132,11 +140,18 @@ function onBeforeUnload(e: BeforeUnloadEvent) {
   }
 }
 
-onBeforeRouteLeave((_to, _from, next) => {
-  if (dirty.value && !window.confirm('有未保存的修改，确定离开？')) {
-    return next(false)
+onBeforeRouteLeave(async (_to, _from) => {
+  if (dirty.value) {
+    try {
+      await ElMessageBox.confirm('有未保存的修改，确定离开？', '提示', {
+        type: 'warning',
+        confirmButtonText: '离开',
+        cancelButtonText: '继续编辑',
+      })
+    } catch {
+      return false
+    }
   }
-  next()
 })
 
 async function save() {
@@ -155,8 +170,10 @@ async function save() {
       dirty.value = false
       clearDraft()
       ElMessage.success('已保存')
+      router.push('/admin/notes')
     } else {
       await createNote(form.value)
+      dirty.value = false
       clearDraft()
       ElMessage.success('已创建')
       router.push('/admin/notes')

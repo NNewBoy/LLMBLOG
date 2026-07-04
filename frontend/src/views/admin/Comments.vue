@@ -71,7 +71,6 @@ async function remove(c: any) {
           </template>
         </el-table-column>
       </el-table>
-      <EmptyState v-if="!loading && !list.length" text="还没有评论" />
     </GlassCard>
   </div>
 </template>

@@ -121,6 +121,8 @@ server {
 
     # API 代理（含 SSE 流式支持）
     location /api/ {
+        client_max_body_size 10M;
+
         proxy_pass http://127.0.0.1:8000/api/;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
@@ -132,8 +134,10 @@ server {
         proxy_send_timeout 300s;
     }
 
-    # 上传文件
-    location /uploads/ {
+    # 上传文件（^~ 优先级高于正则，避免被静态资源缓存规则拦截）
+    location ^~ /uploads/ {
+        client_max_body_size 10M;
+
         proxy_pass http://127.0.0.1:8000/uploads/;
         proxy_set_header Host $host;
     }
