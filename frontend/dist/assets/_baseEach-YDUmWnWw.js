@@ -1,0 +1,1 @@
+import{b as t}from"./isArrayLikeObject-Dv7s2FeA.js";import{v as b,k as i}from"./index-B5PDgeJK.js";function h(a,s){return a&&t(a,s,b)}function m(a,s){return function(r,f){if(r==null)return r;if(!i(r))return a(r,f);for(var u=r.length,e=-1,n=Object(r);++e<u&&f(n[e],e,n)!==!1;);return r}}var p=m(h);export{h as a,p as b};
