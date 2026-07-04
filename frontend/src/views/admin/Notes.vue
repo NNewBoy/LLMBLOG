@@ -119,14 +119,14 @@ async function exportMarkdown(n: NoteSummary) {
                 @click="router.push(`/admin/notes/${row.id}/edit`)" />
             </el-tooltip>
             <el-tooltip content="导出 Markdown" :effect="tipEffect" placement="top">
-              <Download :size="16" class="act-icon act-export" @click="exportMarkdown(row)" />
+              <Download :size="16" class="act-icon act-export" @click="exportMarkdown(row as NoteSummary)" />
             </el-tooltip>
             <el-tooltip :content="row.is_pinned ? '取消置顶' : '置顶'" :effect="tipEffect" placement="top">
               <component :is="row.is_pinned ? PinOff : Pin" :size="16"
-                class="act-icon act-toggle" @click="pin(row)" />
+                class="act-icon act-toggle" @click="pin(row as NoteSummary)" />
             </el-tooltip>
             <el-tooltip content="删除" :effect="tipEffect" placement="top">
-              <Trash2 :size="16" class="act-icon act-del" @click="remove(row)" />
+              <Trash2 :size="16" class="act-icon act-del" @click="remove(row as NoteSummary)" />
             </el-tooltip>
           </template>
         </el-table-column>

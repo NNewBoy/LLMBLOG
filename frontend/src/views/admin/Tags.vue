@@ -73,10 +73,10 @@ async function remove(t: Tag) {
         <el-table-column label="操作" align="center" width="90" fixed="right">
           <template #default="{ row }">
             <el-tooltip content="编辑" :effect="tipEffect" placement="top">
-              <Pencil :size="16" class="act-icon act-edit" @click="openEdit(row)" />
+              <Pencil :size="16" class="act-icon act-edit" @click="openEdit(row as Tag)" />
             </el-tooltip>
             <el-tooltip content="删除" :effect="tipEffect" placement="top">
-              <Trash2 :size="16" class="act-icon act-del" @click="remove(row)" />
+              <Trash2 :size="16" class="act-icon act-del" @click="remove(row as Tag)" />
             </el-tooltip>
           </template>
         </el-table-column>
