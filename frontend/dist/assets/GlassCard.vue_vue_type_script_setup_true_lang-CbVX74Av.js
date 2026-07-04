@@ -1,1 +1,0 @@
-import{J as s,V as t,W as n,Z as l,_ as r,$ as i}from"./vendor-MlNz0djl.js";const c=s({__name:"GlassCard",props:{interactive:{type:Boolean,default:!1},padding:{default:"24px"}},setup(e){return(a,o)=>(t(),n("div",{class:i(["glass",{"glass-interactive":e.interactive}]),style:r({padding:e.padding})},[l(a.$slots,"default")],6))}});export{c as _};
