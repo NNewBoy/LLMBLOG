@@ -1,9 +1,20 @@
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import { fileURLToPath, URL } from 'node:url'
+import AutoImport from 'unplugin-auto-import/vite'
+import Components from 'unplugin-vue-components/vite'
+import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
 
 export default defineConfig({
-  plugins: [vue()],
+  plugins: [
+    vue(),
+    AutoImport({
+      resolvers: [ElementPlusResolver()],
+    }),
+    Components({
+      resolvers: [ElementPlusResolver()],
+    }),
+  ],
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
@@ -17,18 +28,6 @@ export default defineConfig({
     },
   },
   build: {
-    rollupOptions: {
-      output: {
-        manualChunks(id) {
-          if (id.includes('node_modules')) {
-            if (id.includes('markdown-it') || id.includes('highlight.js')) return 'markdown'
-            if (id.includes('echarts') || id.includes('zrender')) return 'echarts'
-            if (id.includes('element-plus') || id.includes('@element-plus')) return 'element-plus'
-            if (id.includes('lucide-vue-next') || id.includes('lucide')) return 'lucide'
-            return 'vendor'
-          }
-        },
-      },
-    },
+    chunkSizeWarningLimit: 1500,
   },
 })
