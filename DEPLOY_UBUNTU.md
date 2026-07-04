@@ -145,7 +145,7 @@ server {
         proxy_set_header Host $host;
     }
 
-    # 静态资源缓存
+    # 静态资源缓存（Vite 构建产出含 hash 文件名，可安全长缓存）
     location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
         root /var/www/llmblog;
         expires 1y;

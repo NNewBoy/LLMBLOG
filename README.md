@@ -30,7 +30,7 @@
 | 框架 | Vue 3.4（Composition API + `<script setup>`） |
 | 构建 | Vite 5 |
 | 语言 | TypeScript 5 |
-| UI 库 | Element Plus 2.7 |
+| UI 库 | Element Plus 2.7（按需导入，unplugin-vue-components + unplugin-auto-import） |
 | 编辑器 | ByteMD 1.x（Svelte 内核，轻量 ~30KB）+ markdown-it（详情页预览） |
 | 渲染 | markdown-it + highlight.js + KaTeX + Mermaid（详情页） |
 | 状态 | Pinia |
@@ -98,7 +98,7 @@ LLMBLOG/
     │       ├── front/            # Entry / Home / Tags / Timeline / Search / NoteDetail
     │       └── admin/            # Dashboard / Notes / NoteEdit / Images / Tags / Comments / Settings
     ├── lighthouserc.cjs          # Lighthouse CI 配置
-    ├── vite.config.ts            # 含 manualChunks 分包（bytemd/echarts/element-plus/markdown）+ /api → :8000 代理
+    ├── vite.config.ts            # Element Plus 按需导入 + /api → :8000 代理
     └── package.json
 ```
 
@@ -314,7 +314,7 @@ npm run lhci         # 自动启动 preview 服务器 + 跑 Lighthouse + 断言
 | M1 基础架构 | ✅ | 脚手架、主题系统、布局、路由守卫、登录、通用组件 |
 | M2 内容前台 | ✅ | 首页 / 标签云 / 时间线 / 搜索（含关键词高亮）；NoteDetail 已接入 Markdown 渲染（markdown-it + highlight.js + KaTeX 数学公式 + Mermaid 图表 + Task Lists）/ TOC 滚动高亮 / 阅读进度条 / 回顶 / 代码块复制 / 图片懒加载+灯箱 / 上下篇导航 / 评论区（2 级嵌套 + 蜜罐 + 点赞 + 回复） |
 | M3 后台管理 | ✅ | 笔记 CRUD（含 Markdown 导入/导出）/ 图片 / 标签 / 评论 / 设置；Dashboard 已接入 ECharts（访客趋势折线 / 终端分布饼 / Top 笔记条形 / 入口访客统计条形 + 空/载/错三态 + 主题联动 + 7/30/90 天切换）；NoteEdit 已接入 ByteMD 编辑器（gfm/highlight/medium-zoom/math-ssr/mermaid 插件 + CodeMirror 主题切换）+ 自动保存（localStorage 30s 节流）+ Ctrl/⌘+S + 离开确认（ElMessageBox） |
-| M4 优化打磨 | ✅ | 性能：Vite manualChunks 分包（bytemd/echarts/element-plus/markdown 独立 chunk）；安全：后端安全响应头中间件（CSP/X-Frame-Options/COOP/Permissions-Policy）；动效：reduced-motion 全量化；可访问性：skip-link + aria-label + 亮色 accent 调至 indigo-600 通过 WCAG AA + heading 层级修正（每页唯一 h1，无跨级）；375px 响应式（header flex-wrap / dialog max-width / 表格横滚 / 超窄屏 padding 缩减）；Lighthouse CI 自动化（lighthouserc.cjs + npm run lhci）；布局：移动端抽屉统一为 AppDrawer 组件（前台/后台复用）+ el-scrollbar 接管页面滚动（body 固定 100vh、路由切换自动回顶）+ 统一菜单栏样式（navbar-h 64→58px） |
+| M4 优化打磨 | ✅ | 性能：Element Plus 按需导入（unplugin）+ 路由级懒加载；安全：后端安全响应头中间件（CSP/X-Frame-Options/COOP/Permissions-Policy）；动效：reduced-motion 全量化；可访问性：skip-link + aria-label + 亮色 accent 调至 indigo-600 通过 WCAG AA + heading 层级修正（每页唯一 h1，无跨级）；375px 响应式（header flex-wrap / dialog max-width / 表格横滚 / 超窄屏 padding 缩减）；Lighthouse CI 自动化（lighthouserc.cjs + npm run lhci）；布局：移动端抽屉统一为 AppDrawer 组件（前台/后台复用）+ el-scrollbar 接管页面滚动（body 固定 100vh、路由切换自动回顶）+ 统一菜单栏样式（navbar-h 64→58px） |
 | M5 部署上线 | ✅ | Nginx 生产配置（SPA fallback / /api 反代 / /uploads 直出 / gzip / 安全头 / 静态长缓存）；SQLite 备份脚本（PowerShell + Bash，WAL checkpoint + 压缩 + 保留策略）；Docker 容器化（多阶段前端构建 + 后端 + docker-compose + .dockerignore）；环境变量示例 + README 部署章节（Docker / 裸金属 / systemd / cron 备份） |
 
 详细落地情况见 `SPEC.md` 附录 B 与 `docs/UI-UX-DESIGN-PLAN.md` §9。
