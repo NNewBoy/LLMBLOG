@@ -2,6 +2,7 @@
 import { computed, ref, watch, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElScrollbar } from 'element-plus'
+import 'element-plus/es/components/scrollbar/style/css'
 import { Dot, Shield } from 'lucide-vue-next'
 import AppNavbar from '@/components/AppNavbar.vue'
 import GlassCard from '@/components/GlassCard.vue'
@@ -23,7 +24,7 @@ watch(() => route.path, () => {
   <a href="#main-content" class="skip-link">跳到主内容</a>
   <AppNavbar />
   <main id="main-content" class="layout-main">
-    <el-scrollbar ref="scrollbarRef">
+    <ElScrollbar ref="scrollbarRef">
       <div class="layout-container" :class="{ 'has-sidebar': showSidebar }">
         <div class="layout-content">
           <RouterView v-slot="{ Component }">
@@ -68,7 +69,7 @@ watch(() => route.path, () => {
           {{ settings.settings.police_no }}
         </a>
       </footer>
-    </el-scrollbar>
+    </ElScrollbar>
   </main>
 </template>
 

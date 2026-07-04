@@ -2,6 +2,7 @@
 import { ref, watch, nextTick } from 'vue'
 import { RouterLink, useRouter, useRoute } from 'vue-router'
 import { ElScrollbar } from 'element-plus'
+import 'element-plus/es/components/scrollbar/style/css'
 import {
   LayoutDashboard,
   FileText,
@@ -114,15 +115,15 @@ watch(() => route.path, () => {
         </header>
       </div>
 
-      <el-scrollbar ref="scrollbarRef" class="admin-scroll">
+      <ElScrollbar ref="scrollbarRef" class="admin-scroll">
         <main id="main-content" class="admin-content">
           <RouterView v-slot="{ Component }">
-            <Transition name="fade" mode="out-in">
+            <Transition name="page-fade" mode="out-in">
               <component :is="Component" />
             </Transition>
           </RouterView>
         </main>
-      </el-scrollbar>
+      </ElScrollbar>
     </div>
   </div>
 </template>
