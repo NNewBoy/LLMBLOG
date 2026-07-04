@@ -25,8 +25,9 @@ async function onPick(e: Event) {
   for (const f of Array.from(files)) {
     try {
       await uploadImage(f)
-    } catch {
+    } catch(err: any) {
       /* handled by interceptor */
+      ElMessage.error(f.name + ' ' + err.message)
     }
   }
   ElMessage.success('上传完成')

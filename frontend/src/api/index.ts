@@ -14,14 +14,20 @@ import type {
   EntryStats,
 } from '@/types'
 
+import { sha256 as jsSha256 } from 'js-sha256'
+
 /* ===== auth ===== */
-export function sha256Hex(text: string): Promise<string> {
-  const buf = new TextEncoder().encode(text)
-  return crypto.subtle.digest('SHA-256', buf).then((b) => {
+export async function sha256Hex(text: string): Promise<string> {
+  // crypto.subtle 仅在安全上下文（HTTPS / localhost）可用，
+  // HTTP 部署时降级到 js-sha256（纯 JS 实现）
+  if (typeof crypto !== 'undefined' && crypto.subtle) {
+    const buf = new TextEncoder().encode(text)
+    const b = await crypto.subtle.digest('SHA-256', buf)
     return Array.from(new Uint8Array(b))
       .map((x) => x.toString(16).padStart(2, '0'))
       .join('')
-  })
+  }
+  return jsSha256(text)
 }
 
 export const login = (password: string) =>
@@ -76,6 +82,10 @@ export const deleteComment = (id: number) => request.delete<unknown, any>(`/comm
 export const listImages = (page = 1, page_size = 24) =>
   request.get<unknown, Page<ImageItem>>('/images', { params: { page, page_size } })
 export const uploadImage = (file: File) => {
+  const MAX_SIZE = 10 * 1024 * 1024 // 10MB
+  if (file.size > MAX_SIZE) {
+    return Promise.reject(new Error('图片大小不能超过 10MB'))
+  }
   const fd = new FormData()
   fd.append('file', file)
   return request.post<unknown, ImageItem>('/images/upload', fd, {

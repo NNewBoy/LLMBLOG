@@ -3,6 +3,7 @@ import { onMounted, onBeforeUnmount, ref, watch } from 'vue'
 import { Loader2 } from 'lucide-vue-next'
 import { uploadImage } from '@/api'
 import { useThemeStore } from '@/stores/theme'
+import { ElMessage } from 'element-plus'
 
 const props = defineProps<{ modelValue: string; mode?: 'ir' | 'wysiwyg' | 'sv' }>()
 const emit = defineEmits<{ (e: 'update:modelValue', v: string): void }>()
@@ -39,7 +40,11 @@ onMounted(async () => {
         return Promise.all(files.map((f) => uploadImage(f))).then((res) => {
           const succMap: Record<string, string> = {}
           res.forEach((r) => (succMap[r.filename] = r.url))
-          vd?.vditor?.insertValue(Object.keys(succMap).map((k) => `![${k}](${succMap[k]})`).join('\n'))
+          vd?.insertValue(Object.keys(succMap).map((k) => `![${k}](${succMap[k]})`).join('\n'))
+          return null
+        }).catch(err => {
+          console.error(err)
+          ElMessage.error(err.message)
           return null
         })
       },
