@@ -21,7 +21,6 @@ export default defineConfig({
       output: {
         manualChunks(id) {
           if (id.includes('node_modules')) {
-            if (id.includes('bytemd') || id.includes('codemirror')) return 'bytemd'
             if (id.includes('markdown-it') || id.includes('highlight.js')) return 'markdown'
             if (id.includes('echarts') || id.includes('zrender')) return 'echarts'
             if (id.includes('element-plus') || id.includes('@element-plus')) return 'element-plus'
