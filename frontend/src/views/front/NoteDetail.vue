@@ -8,7 +8,8 @@ import GlassCard from '@/components/GlassCard.vue'
 import Skeleton from '@/components/Skeleton.vue'
 import CommentSection from '@/components/CommentSection.vue'
 import { useThemeStore } from '@/stores/theme'
-import { renderMarkdown, loadHighlightTheme } from '@/utils/markdown'
+import { renderMarkdown } from '@/utils/markdown'
+import { loadHighlightTheme } from '@/utils/markdown-theme'
 import 'katex/dist/katex.css'
 
 interface TocItem {

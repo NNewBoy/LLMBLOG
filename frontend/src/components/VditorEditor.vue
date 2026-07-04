@@ -10,7 +10,7 @@ import zhHans from 'bytemd/locales/zh_Hans.json'
 import { uploadImage } from '@/api'
 import { useThemeStore } from '@/stores/theme'
 import { ElMessage } from 'element-plus'
-import { loadHighlightTheme } from '@/utils/markdown'
+import { loadHighlightTheme } from '@/utils/markdown-theme'
 
 import 'bytemd/dist/index.css'
 import 'katex/dist/katex.css'
