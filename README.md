@@ -8,7 +8,7 @@
 
 ## 功能特性
 
-- **笔记管理**：Markdown 写作（Vditor 所见即所得）、软删、置顶、标签、时间线归档、上下篇导航、PV 统计
+- **笔记管理**：Markdown 写作（Vditor 所见即所得编辑器）、markdown-it 高速预览、软删、置顶、标签、时间线归档、上下篇导航、PV 统计、Markdown 导入/导出
 - **评论系统**：2 级嵌套、点赞、隐藏/删除、蜜罐反垃圾、3 次/分钟限流
 - **图片管理**：上传自动生成 320px 缩略图（Pillow）、列表、删除
 - **标签管理**：CRUD + 笔记关联
@@ -31,7 +31,7 @@
 | 构建 | Vite 5 |
 | 语言 | TypeScript 5 |
 | UI 库 | Element Plus 2.7 |
-| 编辑器 | Vditor 3.9（动态 import） |
+| 编辑器 | Vditor 3.11（编辑器）+ markdown-it（详情页预览） |
 | 状态 | Pinia |
 | 路由 | Vue Router 4 |
 | 请求 | Axios（统一响应解包 + 401 重定向） |
@@ -46,7 +46,8 @@
 | ORM | SQLAlchemy 2.0 |
 | 数据库 | SQLite（WAL 模式 + foreign_keys） |
 | 校验 | Pydantic 2 / pydantic-settings |
-| 鉴权 | python-jose（HS256 JWT）+ passlib/bcrypt |
+| 鉴权 | python-jose（HS256 JWT）+ passlib/bcrypt | 
+| 渲染 | markdown-it + highlight.js（详情页） |
 | 图片 | Pillow |
 | 运行 | Uvicorn |
 
@@ -80,6 +81,7 @@ LLMBLOG/
 │   │   ├── services/             # visitor（记录访客 + 入口点击）等业务逻辑
 │   │   └── api/                  # auth / notes / tags / comments / images / stats / entry / settings
 │   ├── requirements.txt
+│   ├── reset_password.py          # 密码重置脚本
 │   ├── .env.example              # 环境变量示例
 │   └── uploads/                  # 图片上传目录（运行时生成）
 └── frontend/
@@ -90,7 +92,7 @@ LLMBLOG/
     │   ├── router/               # 路由 + requiresAuth 守卫
     │   ├── stores/               # theme / auth（Pinia）
     │   ├── styles/               # variables / glass / element-overrides
-    │   ├── utils/                # request（Axios 实例）
+    │   ├── utils/                # request（Axios）/ markdown（markdown-it 封装）
     │   └── views/
     │       ├── front/            # Entry / Home / Tags / Timeline / Search / NoteDetail
     │       └── admin/            # Dashboard / Notes / NoteEdit / Images / Tags / Comments / Settings
@@ -123,7 +125,7 @@ python -m uvicorn app.main:app --reload --port 8000
 - 接口文档：`http://127.0.0.1:8000/docs`
 - 默认管理员账号：`admin` / `admin`（**请登录后在「系统设置」中尽快修改密码**）
 
-> 备注：启动日志中的 `(trapped) error reading bcrypt version` 来自 passlib 1.7.4 与 bcrypt 的兼容性探测，已被 pin `bcrypt==4.1.3` 规避，不影响功能。
+> 备注：`passlib 1.7.4` 与 `bcrypt 4.x` 存在 `__about__` 属性兼容性问题，已通过 pin `bcrypt==3.2.2` 规避。如遇密码相关报错，运行 `python reset_password.py` 重置。
 
 ### 2. 前端
 
@@ -147,7 +149,9 @@ npm run dev
 | 登录入口 | `/login` |
 | 修改路径 | 后台 → 系统设置 → 修改密码 |
 
-密码存储链：前端 `sha256(password)` → 后端 `bcrypt(sha256_hex)`。`init_db` 已对齐该流程。
+密码存储链：前端 `sha256(password)` → 后端 `bcrypt(sha256_hex)`。`init_db` 与 `settings.py` 已对齐该流程。
+
+忘记密码时可在后端目录执行 `python reset_password.py` 重置（支持交互式或命令行传参）。
 
 ---
 
@@ -307,8 +311,8 @@ npm run lhci         # 自动启动 preview 服务器 + 跑 Lighthouse + 断言
 | 里程碑 | 状态 | 说明 |
 | --- | --- | --- |
 | M1 基础架构 | ✅ | 脚手架、主题系统、布局、路由守卫、登录、通用组件 |
-| M2 内容前台 | ✅ | 首页 / 标签云 / 时间线 / 搜索（含关键词高亮）；NoteDetail 已接入 Markdown 渲染（Vditor.preview）/ TOC 滚动高亮 / 阅读进度条 / 回顶 / 代码块复制 / 图片懒加载+灯箱 / 上下篇导航 / 评论区（2 级嵌套 + 蜜罐 + 点赞 + 回复） |
-| M3 后台管理 | ✅ | 笔记 CRUD / 图片 / 标签 / 评论 / 设置；Dashboard 已接入 ECharts（访客趋势折线 / 终端分布饼 / Top 笔记条形 / 入口访客统计条形 + 空/载/错三态 + 主题联动 + 7/30/90 天切换）；NoteEdit 已接入自动保存（localStorage 30s 节流）+ Ctrl/⌘+S + 离开确认 |
+| M2 内容前台 | ✅ | 首页 / 标签云 / 时间线 / 搜索（含关键词高亮）；NoteDetail 已接入 Markdown 渲染（markdown-it + highlight.js）/ TOC 滚动高亮 / 阅读进度条 / 回顶 / 代码块复制 / 图片懒加载+灯箱 / 上下篇导航 / 评论区（2 级嵌套 + 蜜罐 + 点赞 + 回复） |
+| M3 后台管理 | ✅ | 笔记 CRUD（含 Markdown 导入/导出）/ 图片 / 标签 / 评论 / 设置；Dashboard 已接入 ECharts（访客趋势折线 / 终端分布饼 / Top 笔记条形 / 入口访客统计条形 + 空/载/错三态 + 主题联动 + 7/30/90 天切换）；NoteEdit 已接入自动保存（localStorage 30s 节流）+ Ctrl/⌘+S + 离开确认（ElMessageBox） |
 | M4 优化打磨 | ✅ | 性能：Vite manualChunks 分包（vditor/echarts/element-plus 独立 chunk，主入口 1.2MB→9KB）；安全：后端安全响应头中间件（CSP/X-Frame-Options/COOP/Permissions-Policy）；动效：reduced-motion 全量化；可访问性：skip-link + aria-label + 亮色 accent 调至 indigo-600 通过 WCAG AA + heading 层级修正（每页唯一 h1，无跨级）；375px 响应式（header flex-wrap / dialog max-width / 表格横滚 / 超窄屏 padding 缩减）；Lighthouse CI 自动化（lighthouserc.cjs + npm run lhci）；布局：移动端抽屉统一为 AppDrawer 组件（前台/后台复用）+ el-scrollbar 接管页面滚动（body 固定 100vh、路由切换自动回顶）+ 统一菜单栏样式（navbar-h 64→58px） |
 | M5 部署上线 | ✅ | Nginx 生产配置（SPA fallback / /api 反代 / /uploads 直出 / gzip / 安全头 / 静态长缓存）；SQLite 备份脚本（PowerShell + Bash，WAL checkpoint + 压缩 + 保留策略）；Docker 容器化（多阶段前端构建 + 后端 + docker-compose + .dockerignore）；环境变量示例 + README 部署章节（Docker / 裸金属 / systemd / cron 备份） |
 

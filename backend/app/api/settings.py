@@ -1,4 +1,5 @@
 import json
+import hashlib
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
@@ -45,7 +46,9 @@ def update_settings(body: SettingUpdate, db: Session = Depends(get_db), _: str =
     if body.entry_links is not None:
         s.entry_links = json.dumps(body.entry_links, ensure_ascii=False)
     if body.new_password:
-        s.admin_password_hash = hash_password(body.new_password)
+        # 前端登录时对密码做 SHA256 预哈希，这里需保持一致
+        pre_hashed = hashlib.sha256(body.new_password.encode()).hexdigest()
+        s.admin_password_hash = hash_password(pre_hashed)
     db.commit()
     db.refresh(s)
     return ok(s.to_admin_dict())

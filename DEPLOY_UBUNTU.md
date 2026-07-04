@@ -94,7 +94,10 @@ nano .env
 
 ```bash
 mkdir -p /var/LLMBLOG/backend/data
+mkdir -p /var/LLMBLOG/backend/uploads
 ```
+
+> **HTTP 部署注意**：`crypto.subtle`（Web Crypto API）仅在 HTTPS / localhost 下可用。项目已内置 `js-sha256` fallback，HTTP 环境下前端登录自动降级，无需额外处理。
 
 ---
 
@@ -196,6 +199,7 @@ WantedBy=multi-user.target
 ```bash
 sudo chmod -R 755 /var/LLMBLOG
 sudo chmod -R 777 /var/LLMBLOG/backend/data
+sudo chmod -R 777 /var/LLMBLOG/backend/uploads
 sudo systemctl daemon-reload
 sudo systemctl start LLMBLOG
 sudo systemctl enable LLMBLOG
@@ -246,6 +250,11 @@ sudo cp -r dist/* /var/www/llmblog/
 sudo chown -R www-data:www-data /var/www/llmblog
 cd ../backend && source venv/bin/activate && pip install -r requirements.txt
 sudo systemctl restart LLMBLOG
+
+# 重置后台密码
+cd /var/LLMBLOG/backend && source venv/bin/activate
+python reset_password.py              # 交互式输入
+python reset_password.py newpass123   # 直接传参
 ```
 
 ---
@@ -259,6 +268,9 @@ sudo systemctl restart LLMBLOG
 | API 404 | `curl http://127.0.0.1:8000/` 应返回 `{"code":0}` |
 | 端口占用 | `sudo lsof -i:8000` |
 | 权限错误 | `sudo chmod -R 777 /var/LLMBLOG/backend/data` |
+| 上传图片 404 | Nginx `/uploads/` 需用 `^~` 前缀（优先级高于正则缓存规则） |
+| 登录报 `crypto.subtle` 错误 | HTTP 部署需安装 `js-sha256`（已内置 fallback，重新 `npm run build` 即可） |
+| 忘记后台密码 | `cd backend && python reset_password.py` 重置 |
 
 **日志位置**：
 - Systemd：`sudo journalctl -u LLMBLOG`
