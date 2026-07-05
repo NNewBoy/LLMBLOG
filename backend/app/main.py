@@ -63,7 +63,7 @@ app.add_middleware(
 )
 
 # 静态资源：上传的图片
-app.mount("/uploads", StaticFiles(directory=str(settings.upload_path)), name="uploads")
+app.mount("/llmblog_uploads", StaticFiles(directory=str(settings.upload_path)), name="uploads")
 
 # 路由
 api_prefix = settings.API_V1_PREFIX

@@ -6,10 +6,10 @@ services:
       - ./backend/.env
     environment:
       - DB_PATH=app/data/app.db
-      - UPLOAD_DIR=uploads
+      - UPLOAD_DIR=llmblog_uploads
     volumes:
       - db-data:/app/app/data
-      - uploads:/app/uploads
+      - llmblog_uploads:/app/llmblog_uploads
     restart: unless-stopped
 
   nginx:
@@ -19,11 +19,11 @@ services:
     ports:
       - "80:80"
     volumes:
-      - uploads:/opt/llmblog/backend/uploads:ro
+      - llmblog_uploads:/opt/llmblog/backend/llmblog_uploads:ro
     depends_on:
       - backend
     restart: unless-stopped
 
 volumes:
   db-data:
-  uploads:
+  llmblog_uploads:

@@ -24,10 +24,19 @@ export default defineConfig({
     port: 5173,
     proxy: {
       '/api': { target: 'http://127.0.0.1:8000', changeOrigin: true },
-      '/uploads': { target: 'http://127.0.0.1:8000', changeOrigin: true },
+      '/llmblog_uploads': { target: 'http://127.0.0.1:8000', changeOrigin: true },
     },
   },
   build: {
     chunkSizeWarningLimit: 1500,
+    rollupOptions: {
+      onwarn(warning, defaultHandler) {
+        // @vueuse/core 内部 PURE 注释位置警告（第三方依赖，不影响功能）
+        if (warning.code === 'THIS_IS_UNDEFINED') return
+        if (warning.code === 'SOURCEMAP_ERROR') return
+        if (warning.message?.includes('@vueuse')) return
+        defaultHandler(warning)
+      },
+    },
   },
 })

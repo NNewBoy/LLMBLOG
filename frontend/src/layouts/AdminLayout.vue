@@ -2,7 +2,6 @@
 import { ref, watch, nextTick } from 'vue'
 import { RouterLink, useRouter, useRoute } from 'vue-router'
 import { ElScrollbar } from 'element-plus'
-import 'element-plus/es/components/scrollbar/style/css'
 import {
   LayoutDashboard,
   FileText,

@@ -2,7 +2,6 @@
 import { computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElScrollbar } from 'element-plus'
-import 'element-plus/es/components/scrollbar/style/css'
 import { BookOpen, LayoutDashboard, ExternalLink, ArrowRight, Globe } from 'lucide-vue-next'
 import ThemeToggle from '@/components/ThemeToggle.vue'
 import { useSettingsStore } from '@/stores/settings'

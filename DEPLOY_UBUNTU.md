@@ -94,7 +94,7 @@ nano .env
 
 ```bash
 mkdir -p /var/LLMBLOG/backend/data
-mkdir -p /var/LLMBLOG/backend/uploads
+mkdir -p /var/LLMBLOG/backend/llmblog_uploads
 ```
 
 > **HTTP 部署注意**：`crypto.subtle`（Web Crypto API）仅在 HTTPS / localhost 下可用。项目已内置 `js-sha256` fallback，HTTP 环境下前端登录自动降级，无需额外处理。
@@ -137,12 +137,12 @@ server {
         proxy_send_timeout 300s;
     }
 
-    # 上传文件（^~ 优先级高于正则，避免被静态资源缓存规则拦截）
-    location ^~ /uploads/ {
-        client_max_body_size 10M;
-
-        proxy_pass http://127.0.0.1:8000/uploads/;
+    # 上传文件
+    location /llmblog_uploads/ {
+        proxy_pass http://127.0.0.1:8000/llmblog_uploads/;
         proxy_set_header Host $host;
+        expires 30d;
+        add_header Cache-Control "public, immutable";
     }
 
     # 静态资源缓存（Vite 构建产出含 hash 文件名，可安全长缓存）
@@ -194,7 +194,7 @@ WantedBy=multi-user.target
 ```bash
 sudo chmod -R 755 /var/LLMBLOG
 sudo chmod -R 777 /var/LLMBLOG/backend/data
-sudo chmod -R 777 /var/LLMBLOG/backend/uploads
+sudo chmod -R 777 /var/LLMBLOG/backend/llmblog_uploads
 sudo systemctl daemon-reload
 sudo systemctl start LLMBLOG
 sudo systemctl enable LLMBLOG
@@ -263,7 +263,7 @@ python reset_password.py newpass123   # 直接传参
 | API 404 | `curl http://127.0.0.1:8000/` 应返回 `{"code":0}` |
 | 端口占用 | `sudo lsof -i:8000` |
 | 权限错误 | `sudo chmod -R 777 /var/LLMBLOG/backend/data` |
-| 上传图片 404 | Nginx `/uploads/` 需用 `^~` 前缀（优先级高于正则缓存规则） |
+| 上传图片 404 | 确认 Nginx `/llmblog_uploads/` 配置正确 |
 | 登录报 `crypto.subtle` 错误 | HTTP 部署需安装 `js-sha256`（已内置 fallback，重新 `npm run build` 即可） |
 | 忘记后台密码 | `cd backend && python reset_password.py` 重置 |
 

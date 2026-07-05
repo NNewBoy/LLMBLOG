@@ -2,7 +2,6 @@
 import { computed, ref, watch, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElScrollbar } from 'element-plus'
-import 'element-plus/es/components/scrollbar/style/css'
 import { Dot, Shield } from 'lucide-vue-next'
 import AppNavbar from '@/components/AppNavbar.vue'
 import GlassCard from '@/components/GlassCard.vue'

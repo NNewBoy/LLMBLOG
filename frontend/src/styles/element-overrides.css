@@ -1,34 +1,14 @@
-/* Element Plus 主题适配：用 CSS 变量桥接，使其跟随深/浅主题 */
+/* Element Plus 主题适配：用 CSS 变量桥接，使其跟随深/浅主题。
+   !important 确保覆盖按需导入时动态注入的 Element Plus 默认变量。 */
 :root,
 [data-theme='light'] {
-  --el-color-primary: var(--accent);
-  --el-color-primary-light-3: #818cf8;
-  --el-color-primary-light-5: #a5b4fc;
-  --el-color-primary-light-7: #c7d2fe;
-  --el-color-primary-light-8: #e0e7ff;
-  --el-color-primary-light-9: var(--accent-soft);
-  --el-color-primary-dark-2: var(--accent-hover);
-  --el-text-color-primary: var(--text);
-  --el-text-color-regular: var(--text-secondary);
-  --el-border-color: var(--border);
-  --el-border-color-light: var(--border);
-  --el-bg-color: transparent;
-  --el-bg-color-page: transparent;
-  --el-fill-color-blank: transparent;
-  --el-box-shadow: var(--shadow);
-  --el-box-shadow-light: var(--shadow);
-  --el-popper-bg-color-dark: var(--surface);
+  --el-table-border-color: var(--border) !important;
+  --el-border-color-lighter: var(--border) !important;
 }
 
 [data-theme='dark'] {
-  --el-text-color-primary: var(--text);
-  --el-text-color-regular: var(--text-secondary);
-  --el-border-color: var(--border);
-  --el-bg-color: transparent;
-  --el-bg-color-page: transparent;
-  --el-fill-color-blank: transparent;
-  --el-mask-color: rgba(0, 0, 0, 0.5);
-  --el-popper-bg-color-dark: var(--surface);
+  --el-table-border-color: var(--border) !important;
+  --el-border-color-lighter: var(--border) !important;
 }
 
 .el-input__wrapper,
@@ -67,6 +47,7 @@
 .el-table {
   background: var(--bg) !important;
   color: var(--text) !important;
+  border-radius: var(--radius-lg) !important;
 }
 
 .el-table tr,
@@ -141,19 +122,14 @@
   border-radius: var(--radius-pill) !important;
 }
 
-.el-popper {
-  color: var(--text) !important;
-}
-
-.el-popper.is-dark {
-  color: #e6e9ef !important;
-  background: var(--bg) !important;
-  border-color: var(--bg) !important;
-}
-
-.el-popper.is-dark>.el-popper__arrow::before {
-  background-color: var(--bg) !important;
-  border-color: var(--bg) !important;
+/* GlassCard 的 backdrop-filter 会创建包含块，影响 popper 定位。
+   backdrop-filter 使 position:fixed 的 popper 基于此元素而非视口定位。
+   含 el-table 时移除 backdrop-filter，改用半透明背景模拟。 */
+.glass:has(.el-table) {
+  overflow: visible;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  background: var(--surface-strong);
 }
 
 /* ByteMD 全屏模式 z-index 覆盖（高于 admin topbar） */

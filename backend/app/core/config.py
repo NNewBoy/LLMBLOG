@@ -9,7 +9,7 @@ class Settings(BaseSettings):
     SECRET_KEY: str = "dev-secret-change-me"
     ADMIN_PASSWORD_HASH: str = ""
     DB_PATH: str = "app/data/app.db"
-    UPLOAD_DIR: str = "uploads"
+    UPLOAD_DIR: str = "llmblog_uploads"
     CORS_ORIGINS: str = "http://localhost:5173,http://127.0.0.1:5173"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 120
     APP_NAME: str = "LLMBLOG"

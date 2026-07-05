@@ -84,7 +84,7 @@ LLMBLOG/
 │   ├── requirements.txt
 │   ├── reset_password.py          # 密码重置脚本
 │   ├── .env.example              # 环境变量示例
-│   └── uploads/                  # 图片上传目录（运行时生成）
+│   └── llmblog_uploads/          # 图片上传目录（运行时生成）
 └── frontend/
     ├── src/
     │   ├── api/                  # 接口封装 + sha256Hex
@@ -210,7 +210,7 @@ docker compose logs -f
 - 访问：`http://<服务器IP>`
 - 前端镜像多阶段构建：Node 20 编译 → Nginx Alpine 托管
 - 后端镜像：Python 3.12-slim + Uvicorn
-- 数据卷：`db-data`（SQLite）+ `uploads`（图片，Nginx 只读挂载直出）
+- 数据卷：`db-data`（SQLite）+ `llmblog_uploads`（图片，Nginx 只读挂载直出）
 - Nginx 配置自动 `sed` 替换 `127.0.0.1:8000` → `backend:8000`
 
 ### 方式二：裸金属部署
@@ -256,7 +256,7 @@ WantedBy=multi-user.target
 
 - `root` — 前端 `dist/` 部署路径
 - `location /api/` → `proxy_pass http://127.0.0.1:8000`
-- `location /uploads/` → `alias` 指向后端 `uploads/` 目录
+- `location /llmblog_uploads/` → `alias` 指向后端 `llmblog_uploads/` 目录
 - 已含 gzip、安全响应头、SPA fallback、静态资源长缓存
 
 #### 4. SQLite 定时备份
@@ -282,7 +282,7 @@ WantedBy=multi-user.target
 | `SECRET_KEY` | `dev-secret-change-me` | JWT 签名密钥（生产必须修改） |
 | `ADMIN_PASSWORD_HASH` | 空 | 管理员密码哈希（留空则首次启动用 admin 初始化） |
 | `DB_PATH` | `app/data/app.db` | SQLite 文件路径 |
-| `UPLOAD_DIR` | `uploads` | 图片上传目录 |
+| `UPLOAD_DIR` | `llmblog_uploads` | 图片上传目录 |
 | `CORS_ORIGINS` | `http://localhost:5173,...` | CORS 允许来源（逗号分隔，生产设为实际域名） |
 | `ACCESS_TOKEN_EXPIRE_MINUTES` | `120` | JWT 过期时间（分钟） |
 
@@ -315,7 +315,7 @@ npm run lhci         # 自动启动 preview 服务器 + 跑 Lighthouse + 断言
 | M2 内容前台 | ✅ | 首页 / 标签云 / 时间线 / 搜索（含关键词高亮）；NoteDetail 已接入 Markdown 渲染（markdown-it + highlight.js + KaTeX 数学公式 + Mermaid 图表 + Task Lists）/ TOC 滚动高亮 / 阅读进度条 / 回顶 / 代码块复制 / 图片懒加载+灯箱 / 上下篇导航 / 评论区（2 级嵌套 + 蜜罐 + 点赞 + 回复） |
 | M3 后台管理 | ✅ | 笔记 CRUD（含 Markdown 导入/导出）/ 图片 / 标签 / 评论 / 设置；Dashboard 已接入 ECharts（访客趋势折线 / 终端分布饼 / Top 笔记条形 / 入口访客统计条形 + 空/载/错三态 + 主题联动 + 7/30/90 天切换）；NoteEdit 已接入 ByteMD 编辑器（gfm/highlight/medium-zoom/math-ssr/mermaid 插件 + CodeMirror 主题切换）+ 自动保存（localStorage 30s 节流）+ Ctrl/⌘+S + 离开确认（ElMessageBox） |
 | M4 优化打磨 | ✅ | 性能：Element Plus 按需导入（unplugin）+ 路由级懒加载；安全：后端安全响应头中间件（CSP/X-Frame-Options/COOP/Permissions-Policy）；动效：reduced-motion 全量化；可访问性：skip-link + aria-label + 亮色 accent 调至 indigo-600 通过 WCAG AA + heading 层级修正（每页唯一 h1，无跨级）；375px 响应式（header flex-wrap / dialog max-width / 表格横滚 / 超窄屏 padding 缩减）；Lighthouse CI 自动化（lighthouserc.cjs + npm run lhci）；布局：移动端抽屉统一为 AppDrawer 组件（前台/后台复用）+ el-scrollbar 接管页面滚动（body 固定 100vh、路由切换自动回顶）+ 统一菜单栏样式（navbar-h 64→58px） |
-| M5 部署上线 | ✅ | Nginx 生产配置（SPA fallback / /api 反代 / /uploads 直出 / gzip / 安全头 / 静态长缓存）；SQLite 备份脚本（PowerShell + Bash，WAL checkpoint + 压缩 + 保留策略）；Docker 容器化（多阶段前端构建 + 后端 + docker-compose + .dockerignore）；环境变量示例 + README 部署章节（Docker / 裸金属 / systemd / cron 备份） |
+| M5 部署上线 | ✅ | Nginx 生产配置（SPA fallback / /api 反代 / /llmblog_uploads 直出 / gzip / 安全头 / 静态长缓存）；SQLite 备份脚本（PowerShell + Bash，WAL checkpoint + 压缩 + 保留策略）；Docker 容器化（多阶段前端构建 + 后端 + docker-compose + .dockerignore）；环境变量示例 + README 部署章节（Docker / 裸金属 / systemd / cron 备份） |
 
 详细落地情况见 `SPEC.md` 附录 B 与 `docs/UI-UX-DESIGN-PLAN.md` §9。
 
@@ -336,4 +336,4 @@ npm run lhci         # 自动启动 preview 服务器 + 跑 Lighthouse + 断言
 - 前端：组件用 `<script setup lang="ts">`，样式优先使用 `variables.css` 语义令牌，禁止裸 hex
 - 后端：路由统一挂在 `/api/v1`，所有出参走 `ResponseModel` 包装，异常走全局处理器
 - 提交前：`npm run build`（含 vue-tsc 类型检查）通过 + 后端 `/docs` 冒烟
-- 不向仓库提交 `.env`、`app.db`、`uploads/`、`node_modules/`、`.venv/`
+- 不向仓库提交 `.env`、`app.db`、`llmblog_uploads/`、`node_modules/`、`.venv/`

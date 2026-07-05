@@ -27,6 +27,6 @@ class Image(Base):
             "size": self.size,
             "mime": self.mime,
             "created_at": self.created_at,
-            "url": f"/uploads/{self.filename}",
-            "thumb_url": f"/uploads/thumb_{self.filename}" if self.thumb_path else None,
+            "url": f"/llmblog_uploads/{self.filename}",
+            "thumb_url": f"/llmblog_uploads/thumb_{self.filename}" if self.thumb_path else None,
         }
