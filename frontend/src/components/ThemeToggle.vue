@@ -11,8 +11,8 @@ const theme = useThemeStore()
     :aria-label="theme.theme === 'light' ? '切换到深色主题' : '切换到浅色主题'"
     @click="theme.toggle()"
   >
-    <Sun v-if="theme.theme === 'dark'" :size="20" />
-    <Moon v-else :size="20" />
+    <Sun v-if="theme.theme === 'dark'" class="theme-icon" :size="18" />
+    <Moon v-else class="theme-icon" :size="18" />
   </button>
 </template>
 
@@ -29,13 +29,17 @@ const theme = useThemeStore()
   color: var(--text);
   cursor: pointer;
   font-size: var(--fs-sm);
-  transition: background var(--dur-base) var(--ease-out), transform var(--dur-fast) var(--ease-out);
+  transition: background var(--dur-base) var(--ease-out);
 }
 .theme-toggle:hover {
   color: var(--accent);
-  transform: rotate(15deg);
+  background: var(--accent-soft);
+  border-color: var(--accent);
 }
-.theme-toggle:active {
-  transform: scale(0.92);
+.theme-icon {
+  transition: transform 0.3s ease;
+}
+.theme-toggle:hover .theme-icon {
+  transform: rotate(30deg);
 }
 </style>

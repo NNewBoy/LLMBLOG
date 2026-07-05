@@ -117,3 +117,10 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* ===== 移动端导航栏高度 ===== */
+@media (max-width: 748px) {
+  :root {
+    --navbar-h: 44px;
+  }
+}
