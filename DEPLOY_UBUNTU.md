@@ -137,8 +137,8 @@ server {
         proxy_send_timeout 300s;
     }
 
-    # 上传文件
-    location /llmblog_uploads/ {
+    # 上传文件（^~ 优先级高于正则，避免被静态资源缓存规则拦截）
+    location ^~ /llmblog_uploads/ {
         proxy_pass http://127.0.0.1:8000/llmblog_uploads/;
         proxy_set_header Host $host;
         expires 30d;
