@@ -28,9 +28,7 @@ watch(() => route.path, () => {
       <div class="layout-container" :class="{ 'has-sidebar': showSidebar }">
         <div class="layout-content">
           <RouterView v-slot="{ Component }">
-            <Transition name="fade" mode="out-in">
-              <component :is="Component" />
-            </Transition>
+            <component :is="Component" />
           </RouterView>
         </div>
         <aside v-if="showSidebar" class="layout-sidebar" aria-label="侧边栏">

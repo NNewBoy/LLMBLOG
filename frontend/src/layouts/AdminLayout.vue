@@ -118,9 +118,7 @@ watch(() => route.path, () => {
       <ElScrollbar ref="scrollbarRef" class="admin-scroll">
         <main id="main-content" class="admin-content">
           <RouterView v-slot="{ Component }">
-            <Transition name="page-fade" mode="out-in">
-              <component :is="Component" />
-            </Transition>
+            <component :is="Component" />
           </RouterView>
         </main>
       </ElScrollbar>
