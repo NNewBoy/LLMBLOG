@@ -32,6 +32,7 @@ class NoteUpdate(BaseModel):
     is_pinned: bool | None = None
     tag_ids: list[int] | None = None
     slug: str | None = None
+    created_at: datetime | None = None
 
 
 class NoteSummary(BaseModel):

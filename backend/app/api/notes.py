@@ -157,6 +157,8 @@ def update_note(note_id: int, body: NoteUpdate, db: Session = Depends(get_db), _
         n.slug = _unique_slug(db, body.slug, exclude_id=n.id)
     if body.tag_ids is not None:
         _sync_tags(db, n, body.tag_ids)
+    if body.created_at is not None:
+        n.created_at = body.created_at
     db.commit()
     return ok(n.to_summary_dict())
 

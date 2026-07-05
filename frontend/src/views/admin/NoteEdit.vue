@@ -22,6 +22,7 @@ const form = ref({
   is_pinned: false,
   slug: '',
   tag_ids: [] as number[],
+  created_at: '' as string,
 })
 
 // 草稿 / 脏标记
@@ -96,6 +97,7 @@ onMounted(async () => {
       is_pinned: n.is_pinned,
       slug: n.slug,
       tag_ids: n.tags.map((t) => t.id),
+      created_at: n.created_at,
     }
     await nextTick()
     loaded.value = true
@@ -166,13 +168,18 @@ async function save() {
   saving.value = true
   try {
     if (isEdit.value) {
-      await updateNote(Number(route.params.id), form.value)
+      const { created_at, ...rest } = form.value
+      const payload: Record<string, any> = { ...rest }
+      // 仅当 created_at 被修改时才发送
+      if (created_at) payload.created_at = created_at
+      await updateNote(Number(route.params.id), payload)
       dirty.value = false
       clearDraft()
       ElMessage.success('已保存')
       router.push('/admin/notes')
     } else {
-      await createNote(form.value)
+      const { created_at, ...rest } = form.value
+      await createNote(rest)
       dirty.value = false
       clearDraft()
       ElMessage.success('已创建')
@@ -216,7 +223,18 @@ async function save() {
     <div class="form-row">
       <el-input v-model="form.summary" type="textarea" :rows="2" placeholder="摘要（留空自动生成）" />
     </div>
-    <div class="form-row">
+    <div class="form-row grid2" v-if="isEdit">
+      <el-date-picker
+        v-model="form.created_at"
+        type="datetime"
+        placeholder="创建时间"
+        format="YYYY-MM-DD HH:mm:ss"
+        value-format="YYYY-MM-DDTHH:mm:ss"
+        style="width: 100%"
+      />
+      <el-checkbox v-model="form.is_pinned">置顶</el-checkbox>
+    </div>
+    <div class="form-row" v-else>
       <el-checkbox v-model="form.is_pinned">置顶</el-checkbox>
     </div>
     <div class="form-row">
