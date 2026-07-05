@@ -40,7 +40,7 @@ async function remove(c: any) {
   <div>
     <h1 class="page-title">评论管理</h1>
     <GlassCard padding="0">
-      <el-table :data="list" v-loading="loading" style="width: 100%" :tooltip-effect="tipEffect">
+      <el-table :data="list" v-loading="loading" style="width: 100%" :tooltip-effect="tipEffect" :tooltip-options="{ popperClass: 'table-content-tooltip' }">
         <el-table-column prop="note_title" label="笔记" width="120" />
         <el-table-column label="昵称" width="120">
           <template #default="{ row }">
