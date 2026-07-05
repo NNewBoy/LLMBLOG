@@ -4,6 +4,7 @@ from sqlalchemy import Integer, String, DateTime
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.database import Base
+from app.utils.timezone import now_naive
 
 
 class Visitor(Base):
@@ -19,7 +20,7 @@ class Visitor(Base):
     # 入口点击跳转的目标网页（仅 source=entry 时有值）
     target: Mapped[str] = mapped_column(String(255), default="")
     terminal: Mapped[str] = mapped_column(String(64), default="")
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=now_naive, index=True)
 
 
 def make_fingerprint(ip: str, ua: str) -> str:

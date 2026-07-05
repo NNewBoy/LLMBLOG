@@ -1,5 +1,4 @@
 import re
-from datetime import datetime
 from fastapi import APIRouter, Depends, Query, Request
 from sqlalchemy import desc, asc, or_
 from sqlalchemy.orm import Session
@@ -129,7 +128,7 @@ def create_note(body: NoteCreate, db: Session = Depends(get_db), _: str = Depend
     n = Note(
         title=body.title, author=body.author, summary=body.summary, content=body.content,
         status=body.status, is_pinned=1 if body.is_pinned else 0,
-        slug="tmp-" + datetime.utcnow().strftime("%H%M%S%f"),
+        slug="tmp-" + now_naive().strftime("%H%M%S%f"),
     )
     db.add(n)
     db.commit()
@@ -167,7 +166,7 @@ def delete_note(note_id: int, db: Session = Depends(get_db), _: str = Depends(re
     n = db.query(Note).filter(Note.id == note_id, Note.deleted_at.is_(None)).first()
     if not n:
         return fail("笔记不存在", status=404)
-    n.deleted_at = datetime.utcnow()
+    n.deleted_at = now_naive()
     db.commit()
     return ok({"id": note_id})
 

@@ -3,6 +3,7 @@ from sqlalchemy import Integer, String, DateTime, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.database import Base
+from app.utils.timezone import now_naive
 
 
 class Tag(Base):
@@ -12,7 +13,7 @@ class Tag(Base):
     name: Mapped[str] = mapped_column(String(64), unique=True, index=True)
     description: Mapped[str] = mapped_column(String(255), default="")
     color: Mapped[str] = mapped_column(String(16), default="")
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=now_naive)
 
     notes: Mapped[list["Note"]] = relationship(
         "Note", secondary="note_tags", back_populates="tags"

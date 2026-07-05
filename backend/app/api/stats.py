@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import timedelta
 import json
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy import func
@@ -11,6 +11,7 @@ from app.models.note import Note
 from app.models.comment import Comment
 from app.models.visitor import Visitor
 from app.models.setting import Setting
+from app.utils.timezone import now_naive
 
 router = APIRouter(prefix="/stats", tags=["stats"])
 
@@ -32,7 +33,7 @@ def visitors(
     db: Session = Depends(get_db),
     _: str = Depends(require_admin),
 ):
-    since = datetime.utcnow() - timedelta(days=days)
+    since = now_naive() - timedelta(days=days)
     rows = db.query(
         func.date(Visitor.created_at).label("d"),
         func.count().label("pv"),
@@ -48,7 +49,7 @@ def top_notes(
     db: Session = Depends(get_db),
     _: str = Depends(require_admin),
 ):
-    since = datetime.utcnow() - timedelta(days=days)
+    since = now_naive() - timedelta(days=days)
     # 按笔记访问路径统计窗口内访问数（path 形如 /note/{slug}）
     rows = (
         db.query(Visitor.path, func.count().label("c"))
@@ -89,7 +90,7 @@ def terminals(
     db: Session = Depends(get_db),
     _: str = Depends(require_admin),
 ):
-    since = datetime.utcnow() - timedelta(days=days)
+    since = now_naive() - timedelta(days=days)
     rows = (
         db.query(Visitor.terminal, func.count().label("c"))
         .filter(Visitor.created_at >= since)
@@ -107,7 +108,7 @@ def entry_stats(
     _: str = Depends(require_admin),
 ):
     """入口页点击统计：总点击数与各入口标题的点击数。"""
-    since = datetime.utcnow() - timedelta(days=days)
+    since = now_naive() - timedelta(days=days)
     base = db.query(Visitor).filter(Visitor.source == "entry", Visitor.created_at >= since)
     total = base.count()
     rows = (

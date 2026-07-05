@@ -3,6 +3,7 @@ from sqlalchemy import Integer, String, Text, DateTime, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.database import Base
+from app.utils.timezone import now_naive
 
 
 class Comment(Base):
@@ -20,7 +21,7 @@ class Comment(Base):
     is_author: Mapped[int] = mapped_column(Integer, default=0)
     like_count: Mapped[int] = mapped_column(Integer, default=0)
     status: Mapped[str] = mapped_column(String(16), default="normal", index=True)  # normal/hidden
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=now_naive, index=True)
 
     note: Mapped["Note"] = relationship("Note", back_populates="comments")
     replies: Mapped[list["Comment"]] = relationship(

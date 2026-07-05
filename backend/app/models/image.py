@@ -3,6 +3,7 @@ from sqlalchemy import Integer, String, DateTime
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.database import Base
+from app.utils.timezone import now_naive
 
 
 class Image(Base):
@@ -15,7 +16,7 @@ class Image(Base):
     thumb_path: Mapped[str] = mapped_column(String(255), default="")
     size: Mapped[int] = mapped_column(Integer, default=0)
     mime: Mapped[str] = mapped_column(String(64), default="")
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=now_naive, index=True)
 
     def to_dict(self) -> dict:
         return {

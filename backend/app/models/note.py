@@ -3,6 +3,7 @@ from sqlalchemy import Integer, String, Text, DateTime, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.database import Base
+from app.utils.timezone import now_naive
 
 
 class Note(Base):
@@ -17,8 +18,8 @@ class Note(Base):
     status: Mapped[str] = mapped_column(String(16), default="published", index=True)  # draft/published/hidden
     is_pinned: Mapped[int] = mapped_column(Integer, default=0)
     view_count: Mapped[int] = mapped_column(Integer, default=0)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, index=True)
-    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=now_naive, index=True)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=now_naive, onupdate=now_naive)
     deleted_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 
     tags: Mapped[list["Tag"]] = relationship(
