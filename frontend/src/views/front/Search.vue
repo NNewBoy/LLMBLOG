@@ -55,7 +55,7 @@ const hasResults = computed(() => !loading.value && results.value.length > 0)
 </script>
 
 <template>
-  <GlassCard padding="32px">
+  <GlassCard padding="24px" class="search-card">
     <h1 class="page-title">搜索结果：{{ q || '—' }}</h1>
     <Skeleton v-if="loading" :lines="5" />
     <template v-else>
@@ -86,7 +86,7 @@ const hasResults = computed(() => !loading.value && results.value.length > 0)
   gap: var(--sp-3);
 }
 .item {
-  padding: var(--sp-4);
+  padding: var(--sp-2);
   border-radius: var(--radius-md);
   cursor: pointer;
   transition: background var(--dur-fast) var(--ease-out);
@@ -115,5 +115,10 @@ const hasResults = computed(() => !loading.value && results.value.length > 0)
   padding: 0 2px;
   border-radius: 2px;
   font-weight: 600;
+}
+@media (max-width: 748px) {
+  .search-card {
+    padding: var(--sp-3) !important;
+  }
 }
 </style>

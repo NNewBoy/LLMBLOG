@@ -94,7 +94,7 @@ watch(() => route.path, () => {
       <div class="admin-topbar-wrapper">
         <header class="admin-topbar glass">
           <button class="icon-btn hamburger" aria-label="打开菜单" @click="drawerOpen = true">
-            <MenuIcon :size="22" />
+            <MenuIcon :size="18" />
           </button>
           <button
             class="icon-btn sidebar-toggle"
@@ -109,7 +109,6 @@ watch(() => route.path, () => {
           <ThemeToggle />
           <button class="icon-btn logout" aria-label="退出登录" @click="logout">
             <LogOut :size="18" />
-            <span class="logout-text">退出</span>
           </button>
         </header>
       </div>
@@ -276,18 +275,20 @@ watch(() => route.path, () => {
   display: inline-flex;
   align-items: center;
   gap: var(--sp-2);
-  min-height: 44px;
-  padding: 0 var(--sp-3);
-  border: 1px solid var(--surface-border);
+  min-width: 36px;
+  height: 36px;
+  border: 1px solid transparent;
   border-radius: var(--radius-md);
-  background: var(--surface);
+  background: transparent;
   color: var(--text);
   cursor: pointer;
   font-size: var(--fs-sm);
   transition: background var(--dur-fast) var(--ease-out);
 }
 .icon-btn:hover {
-  background: var(--surface-hover);
+  color: var(--accent);
+  background: var(--accent-soft);
+  border-color: var(--accent);
 }
 .hamburger {
   display: none;

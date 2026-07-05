@@ -517,4 +517,9 @@ onMounted(() => load(true))
     animation: none;
   }
 }
+@media (max-width: 748px) {
+  .comments {
+    padding: var(--sp-3) !important;
+  }
+}
 </style>

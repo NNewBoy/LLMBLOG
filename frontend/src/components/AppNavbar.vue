@@ -40,7 +40,7 @@ function onSearch() {
     <header class="navbar glass">
       <div class="navbar-inner">
         <button class="icon-btn hamburger" aria-label="打开菜单" @click="showDrawer = true">
-          <MenuIcon :size="22" />
+          <MenuIcon :size="18" />
         </button>
 
         <RouterLink to="/" class="brand" aria-label="返回首页">
@@ -63,7 +63,7 @@ function onSearch() {
 
         <div class="nav-tools">
           <button class="icon-btn" aria-label="搜索" @click="showSearch = true">
-            <SearchIcon :size="20" />
+            <SearchIcon :size="18" />
           </button>
           <ThemeToggle />
         </div>
@@ -166,8 +166,7 @@ function onSearch() {
   flex-shrink: 0;
 }
 .nav-link:hover {
-  color: var(--text);
-  background: var(--surface-hover);
+  color: var(--accent);
 }
 .nav-link.active {
   color: var(--accent);
@@ -192,19 +191,20 @@ function onSearch() {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 44px;
-  height: 44px;
-  padding: 0 var(--sp-3);
-  border: 1px solid var(--surface-border);
+  min-width: 36px;
+  height: 36px;
+  border: 1px solid transparent;
   border-radius: var(--radius-md);
-  background: var(--surface);
+  background: transparent;
   color: var(--text);
   cursor: pointer;
   font-size: var(--fs-sm);
   transition: background var(--dur-fast) var(--ease-out);
 }
 .icon-btn:hover {
-  background: var(--surface-hover);
+  color: var(--accent);
+  background: var(--accent-soft);
+  border-color: var(--accent);
 }
 .hamburger {
   display: none;

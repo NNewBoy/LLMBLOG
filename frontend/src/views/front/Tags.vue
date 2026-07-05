@@ -65,7 +65,7 @@ const isEmpty = computed(() => !loadingArticles.value && hasSelection.value && a
 </script>
 
 <template>
-  <GlassCard padding="32px">
+  <GlassCard padding="24px" class="tags-card">
     <h1 class="page-title">标签</h1>
 
     <!-- 标签云 -->
@@ -188,7 +188,7 @@ const isEmpty = computed(() => !loadingArticles.value && hasSelection.value && a
   gap: var(--sp-3);
 }
 .item {
-  padding: var(--sp-4);
+  padding: var(--sp-2);
   border-radius: var(--radius-md);
   cursor: pointer;
   transition: background var(--dur-fast) var(--ease-out);
@@ -210,5 +210,10 @@ const isEmpty = computed(() => !loadingArticles.value && hasSelection.value && a
   line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+@media (max-width: 748px) {
+  .tags-card {
+    padding: var(--sp-3) !important;
+  }
 }
 </style>

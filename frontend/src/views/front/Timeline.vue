@@ -23,7 +23,7 @@ function fmt(d: string) {
 </script>
 
 <template>
-  <GlassCard padding="32px">
+  <GlassCard padding="24px" class="timeline-card">
     <h1 class="page-title">时间线</h1>
     <Skeleton v-if="loading" :lines="6" />
     <template v-else>
@@ -106,5 +106,10 @@ function fmt(d: string) {
 .v {
   color: var(--text-secondary);
   font-size: var(--fs-xs);
+}
+@media (max-width: 748px) {
+  .timeline-card {
+    padding: var(--sp-3) !important;
+  }
 }
 </style>

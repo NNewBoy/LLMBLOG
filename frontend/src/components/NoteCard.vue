@@ -104,4 +104,9 @@ function fmt(d: string) {
   background: var(--accent-soft);
   color: var(--accent);
 }
+@media (max-width: 748px) {
+  .note-card {
+    padding: var(--sp-3);
+  }
+}
 </style>

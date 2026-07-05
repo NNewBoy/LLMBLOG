@@ -582,6 +582,9 @@ onBeforeUnmount(unbindScroll)
   .progress-bar {
     top: calc(var(--navbar-h) + var(--sp-3));
   }
+  .article {
+    padding: var(--sp-3) !important;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

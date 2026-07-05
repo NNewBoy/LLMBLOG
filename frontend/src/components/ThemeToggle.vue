@@ -21,18 +21,18 @@ const theme = useThemeStore()
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 44px;
-  height: 44px;
-  border: 1px solid var(--surface-border);
-  border-radius: var(--radius-pill);
-  background: var(--surface);
-  backdrop-filter: blur(var(--blur)) saturate(var(--saturate));
+  min-width: 36px;
+  height: 36px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  background: transparent;
   color: var(--text);
   cursor: pointer;
+  font-size: var(--fs-sm);
   transition: background var(--dur-base) var(--ease-out), transform var(--dur-fast) var(--ease-out);
 }
 .theme-toggle:hover {
-  background: var(--surface-hover);
+  color: var(--accent);
   transform: rotate(15deg);
 }
 .theme-toggle:active {
