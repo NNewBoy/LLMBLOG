@@ -228,4 +228,13 @@ watch(() => route.path, () => {
   object-fit: contain;
   flex-shrink: 0;
 }
+@media (max-width: 768px) {
+  .layout-footer {
+    flex-direction: column;
+    gap: var(--sp-1);
+  }
+  .footer-sep {
+    display: none;
+  }
+}
 </style>
