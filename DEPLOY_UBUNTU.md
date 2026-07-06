@@ -99,6 +99,8 @@ mkdir -p /var/LLMBLOG/backend/llmblog_uploads
 
 > **HTTP 部署注意**：`crypto.subtle`（Web Crypto API）仅在 HTTPS / localhost 下可用。项目已内置 `js-sha256` fallback，HTTP 环境下前端登录自动降级，无需额外处理。
 
+> **时区**：后端统一使用东八区（Asia/Shanghai, UTC+8），时间相关逻辑集中在 `app/utils/timezone.py`，所有 ORM 模型默认值及 API 返回时间均以东八区为准。
+
 ---
 
 ## 5. 配置 Nginx

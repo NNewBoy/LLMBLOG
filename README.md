@@ -8,7 +8,7 @@
 
 ## 功能特性
 
-- **笔记管理**：Markdown 写作（ByteMD 编辑器 + markdown-it 高速预览）、软删、置顶、标签、时间线归档、上下篇导航、PV 统计、Markdown 导入/导出
+- **笔记管理**：Markdown 写作（ByteMD 编辑器 + markdown-it 高速预览）、软删、置顶、标签、时间线归档、上下篇导航、PV 统计、Markdown 导入/导出、修改创建时间
 - **评论系统**：2 级嵌套、点赞、隐藏/删除、蜜罐反垃圾、3 次/分钟限流
 - **图片管理**：上传自动生成 320px 缩略图（Pillow）、列表、删除
 - **标签管理**：CRUD + 笔记关联
@@ -47,6 +47,7 @@
 | ORM | SQLAlchemy 2.0 |
 | 数据库 | SQLite（WAL 模式 + foreign_keys） |
 | 校验 | Pydantic 2 / pydantic-settings |
+| 时区 | 东八区 UTC+8（`app/utils/timezone.py` 统一管理） |
 | 鉴权 | python-jose（HS256 JWT）+ passlib/bcrypt |
 | 渲染 | markdown-it + highlight.js + KaTeX + Mermaid（详情页预览） |
 | 图片 | Pillow |
@@ -171,7 +172,7 @@ npm run dev
 | `/notes/timeline` | GET | 时间线归档 | 公开 |
 | `/notes/{slug}` | GET | 详情（PV+1 / 上下篇） | 公开 |
 | `/notes` | POST | 创建 | admin |
-| `/notes/{id}` | PUT | 更新 | admin |
+| `/notes/{id}` | PUT | 更新（含 `created_at` 修改） | admin |
 | `/notes/{id}` | DELETE | 软删 | admin |
 | `/notes/{id}/pin` | PATCH | 置顶切换 | admin |
 | `/tags` | GET / POST / PUT / DELETE | 标签 CRUD | GET 公开，写 admin |
