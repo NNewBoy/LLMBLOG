@@ -123,9 +123,9 @@
 }
 
 /* GlassCard 的 backdrop-filter 会创建包含块，影响 popper 定位。
-   backdrop-filter 使 position:fixed 的 popper 基于此元素而非视口定位。
-   含 el-table 时移除 backdrop-filter，改用半透明背景模拟。 */
-.glass:has(.el-table) {
+   含 el-table 时移除 backdrop-filter，改用半透明背景模拟。
+   使用 :deep（:has() 兼容性差，百度浏览器不支持）。 */
+.glass :deep(.el-table) {
   overflow: visible;
   backdrop-filter: none;
   -webkit-backdrop-filter: none;

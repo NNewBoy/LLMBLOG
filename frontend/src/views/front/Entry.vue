@@ -116,6 +116,7 @@ function onKeydown(e: KeyboardEvent, item: EntryItem) {
   height: 100dvh;
   display: flex;
   flex-direction: column;
+  overflow-x: hidden;
 }
 
 /* 顶栏 */

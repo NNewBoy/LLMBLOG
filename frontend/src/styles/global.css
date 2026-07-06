@@ -1,82 +1,78 @@
-/* 全局 reset / 元素样式放入 @layer base，
-   使未分层的第三方样式（如 Vditor）优先级高于 base 层，
-   避免全局元素选择器污染 Vditor 官方深/浅色样式 */
-@layer base {
-  * {
-    box-sizing: border-box;
-  }
+/* 全局 reset（不使用 @layer，兼容旧版浏览器） */
+* {
+  box-sizing: border-box;
+}
 
-  html,
-  body {
-    margin: 0;
-    padding: 0;
-    height: 100vh;
-    height: 100dvh;
-    overflow: hidden;
-  }
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+}
 
-  body {
-    font-family: var(--font-body);
-    font-size: var(--fs-base);
-    line-height: 1.75;
-    color: var(--text);
-    background: var(--bg);
-    -webkit-font-smoothing: antialiased;
-    -webkit-tap-highlight-color: transparent;
-    transition: background var(--dur-slow) var(--ease-out), color var(--dur-slow) var(--ease-out);
-    /* 移动端：禁用长按系统弹出菜单（如复制/分享），避免与 UI 交互冲突 */
-    -webkit-touch-callout: none;
-    /* 默认禁止整页文本选择，防止长按按钮/卡片时出现蓝色选区 */
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    user-select: none;
-  }
+body {
+  font-family: var(--font-body);
+  font-size: var(--fs-base);
+  line-height: 1.75;
+  color: var(--text);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+  transition: background var(--dur-slow) var(--ease-out), color var(--dur-slow) var(--ease-out);
+  /* 移动端：禁用长按系统弹出菜单（如复制/分享），避免与 UI 交互冲突 */
+  -webkit-touch-callout: none;
+  /* 默认禁止整页文本选择，防止长按按钮/卡片时出现蓝色选区 */
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  user-select: none;
+}
 
-  /* 背景光斑 */
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    z-index: -1;
-    pointer-events: none;
-    background:
-      radial-gradient(circle at 12% 18%, var(--bg-blob-1) 0, transparent 38%),
-      radial-gradient(circle at 88% 22%, var(--bg-blob-2) 0, transparent 36%),
-      radial-gradient(circle at 70% 85%, var(--bg-blob-3) 0, transparent 40%);
-    opacity: 0.55;
-  }
+/* 背景光斑 */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 12% 18%, var(--bg-blob-1) 0, transparent 38%),
+    radial-gradient(circle at 88% 22%, var(--bg-blob-2) 0, transparent 36%),
+    radial-gradient(circle at 70% 85%, var(--bg-blob-3) 0, transparent 40%);
+  opacity: 0.55;
+}
 
-  #app {
-    height: 100vh;
-    height: 100dvh;
-  }
+#app {
+  height: 100vh;
+  height: 100dvh;
+}
 
-  a {
-    color: var(--accent);
-    text-decoration: none;
-    transition: color var(--dur-fast) var(--ease-out);
-  }
+a {
+  color: var(--accent);
+  text-decoration: none;
+  transition: color var(--dur-fast) var(--ease-out);
+}
 
-  a:hover {
-    color: var(--accent-hover);
-  }
+a:hover {
+  color: var(--accent-hover);
+}
 
-  img {
-    max-width: 100%;
-    display: block;
-  }
+img {
+  max-width: 100%;
+  display: block;
+}
 
-  :focus,
-  :focus-visible {
-    outline: none;
-  }
+:focus,
+:focus-visible {
+  outline: none;
+}
 
-  /* 系统滚动条隐藏：页面滚动统一由 el-scrollbar 接管 */
-  ::-webkit-scrollbar {
-    width: 0;
-    height: 0;
-    display: none;
-  }
+/* 系统滚动条隐藏：页面滚动统一由 el-scrollbar 接管 */
+::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
 }
 
 .skip-link {
