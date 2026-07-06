@@ -1,1 +1,0 @@
-import{c as s,o as t,e as n,f as l,n as o,g as r}from"./index-Dy124HAJ.js";const c=s({__name:"GlassCard",props:{interactive:{type:Boolean,default:!1},padding:{default:"24px"}},setup(e){return(a,i)=>(t(),n("div",{class:r(["glass",{"glass-interactive":e.interactive}]),style:o({padding:e.padding})},[l(a.$slots,"default")],6))}});export{c as _};
