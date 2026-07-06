@@ -23,7 +23,7 @@ watch(() => route.path, () => {
   <a href="#main-content" class="skip-link">跳到主内容</a>
   <AppNavbar />
   <main id="main-content" class="layout-main">
-    <ElScrollbar ref="scrollbarRef">
+    <el-scrollbar ref="scrollbarRef">
       <div class="layout-container" :class="{ 'has-sidebar': showSidebar }">
         <div class="layout-content">
           <RouterView v-slot="{ Component }">
@@ -66,7 +66,7 @@ watch(() => route.path, () => {
           {{ settings.settings.police_no }}
         </a>
       </footer>
-    </ElScrollbar>
+    </el-scrollbar>
   </main>
 </template>
 

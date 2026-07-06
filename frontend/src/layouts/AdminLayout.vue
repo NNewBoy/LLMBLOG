@@ -113,13 +113,13 @@ watch(() => route.path, () => {
         </header>
       </div>
 
-      <ElScrollbar ref="scrollbarRef" class="admin-scroll">
+      <el-scrollbar ref="scrollbarRef" class="admin-scroll">
         <main id="main-content" class="admin-content">
           <RouterView v-slot="{ Component }">
             <component :is="Component" />
           </RouterView>
         </main>
-      </ElScrollbar>
+      </el-scrollbar>
     </div>
   </div>
 </template>

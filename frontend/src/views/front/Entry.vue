@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElScrollbar } from 'element-plus'
 import { BookOpen, LayoutDashboard, ExternalLink, ArrowRight, Globe } from 'lucide-vue-next'
 import ThemeToggle from '@/components/ThemeToggle.vue'
 import { useSettingsStore } from '@/stores/settings'
@@ -78,7 +77,7 @@ function onKeydown(e: KeyboardEvent, item: EntryItem) {
     </div>
 
     <!-- 主体 -->
-    <ElScrollbar class="entry-scroll">
+    <el-scrollbar class="entry-scroll">
       <main id="main-content" class="entry-main">
       <section class="hero">
         <h1 class="hero-title">{{ settings.settings.site_name || '个人笔记博客' }}</h1>
@@ -107,7 +106,7 @@ function onKeydown(e: KeyboardEvent, item: EntryItem) {
         </article>
       </section>
     </main>
-    </ElScrollbar>
+    </el-scrollbar>
   </div>
 </template>
 

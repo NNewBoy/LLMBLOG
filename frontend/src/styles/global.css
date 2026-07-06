@@ -24,6 +24,12 @@
     -webkit-font-smoothing: antialiased;
     -webkit-tap-highlight-color: transparent;
     transition: background var(--dur-slow) var(--ease-out), color var(--dur-slow) var(--ease-out);
+    /* 移动端：禁用长按系统弹出菜单（如复制/分享），避免与 UI 交互冲突 */
+    -webkit-touch-callout: none;
+    /* 默认禁止整页文本选择，防止长按按钮/卡片时出现蓝色选区 */
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    user-select: none;
   }
 
   /* 背景光斑 */

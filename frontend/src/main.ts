@@ -8,8 +8,7 @@ import './styles/glass.css'
 import './styles/global.css'
 import './styles/element-overrides.css'
 
-// ElScrollbar / ElMessage / ElMessageBox / ElTooltip 是 JS API，unplugin 不会自动注入样式，需手动导入
-import 'element-plus/es/components/scrollbar/style/css'
+//  ElMessage / ElMessageBox / ElTooltip 是 JS API，unplugin 不会自动注入样式，需手动导入
 import 'element-plus/es/components/message/style/css'
 import 'element-plus/es/components/message-box/style/css'
 import 'element-plus/es/components/tooltip/style/css'
