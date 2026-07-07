@@ -113,14 +113,17 @@ export interface TopNote {
   title: string
   slug: string
   view_count: number
+  uv: number
 }
 
 export interface EntryTarget {
   title: string
   count: number
+  uv: number
 }
 
 export interface EntryStats {
   total: number
+  total_uv: number
   targets: EntryTarget[]
 }

@@ -17,7 +17,7 @@
 - **响应式**：移动优先，断点 375 / 768 / 1024 / 1440；移动端顶栏抽屉化、侧栏隐藏
 - **Glassmorphism**：`backdrop-filter` 毛玻璃 + `@supports` 实色降级
 - **可访问性基线**：焦点环、键盘可达、aria-live Toast、reduced-motion 令牌
-- **入口页**：Glassmorphism 门户（`/entry`），展示 Blog 主页 / 后台入口 + 配置化跳转链接，支持亮/暗主题切换并自动传递参数，点击计入访客统计
+- **入口页**：Glassmorphism 门户（`/entry`），展示 Blog 主页 / 后台入口 + 配置化跳转链接，支持亮/暗主题切换并自动传递参数，页面加载时自动记录 /entry、/、/admin 访客统计（访问量 + 访客数）
 
 ---
 
@@ -81,7 +81,7 @@ LLMBLOG/
 │   │   ├── models/               # 7 个 ORM 模型
 │   │   ├── schemas/              # Pydantic 入参/出参
 │   │   ├── services/             # visitor（记录访客 + 入口点击）等业务逻辑
-│   │   └── api/                  # auth / notes / tags / comments / images / stats / entry / settings
+│   │   └── api/                  # auth / notes / tags / comments / images / stats / entry / visit / settings
 │   ├── requirements.txt
 │   ├── reset_password.py          # 密码重置脚本
 │   ├── .env.example              # 环境变量示例
@@ -184,8 +184,9 @@ npm run dev
 | `/images` | GET / POST | 列表 / 上传（缩略图） | GET 公开，POST admin |
 | `/images/{id}` | DELETE | 删除（同步删文件） | admin |
 | `/stats` | GET | Dashboard 概览 | admin |
-| `/stats/entry` | GET | 入口页点击统计（总量 + 各入口标题分布） | admin |
-| `/entry/click` | POST | 记录入口页点击跳转 | 公开 |
+| `/stats/entry` | GET | 入口页访客统计（总量 + 各入口标题分布，含访问量与访客数） | admin |
+| `/entry/click` | POST | 记录入口页点击跳转（已废弃，改为页面加载时自动记录） | 公开 |
+| `/visit/record` | POST | 外部平台访客记录（传 `title` 匹配 entry_links） | 公开 |
 | `/settings` | GET / PUT | 读取 / 更新（含 `entry_links` 配置） | GET 公开，PUT admin |
 
 完整 OpenAPI：启动后端后访问 `http://127.0.0.1:8000/docs`。
@@ -314,7 +315,7 @@ npm run lhci         # 自动启动 preview 服务器 + 跑 Lighthouse + 断言
 | --- | --- | --- |
 | M1 基础架构 | ✅ | 脚手架、主题系统、布局、路由守卫、登录、通用组件 |
 | M2 内容前台 | ✅ | 首页 / 标签云 / 时间线 / 搜索（含关键词高亮）；NoteDetail 已接入 Markdown 渲染（markdown-it + highlight.js + KaTeX 数学公式 + Mermaid 图表 + Task Lists）/ TOC 滚动高亮 / 阅读进度条 / 回顶 / 代码块复制 / 图片懒加载+灯箱 / 上下篇导航 / 评论区（2 级嵌套 + 蜜罐 + 点赞 + 回复） |
-| M3 后台管理 | ✅ | 笔记 CRUD（含 Markdown 导入/导出）/ 图片 / 标签 / 评论 / 设置；Dashboard 已接入 ECharts（访客趋势折线 / 终端分布饼 / Top 笔记条形 / 入口访客统计条形 + 空/载/错三态 + 主题联动 + 7/30/90 天切换）；NoteEdit 已接入 ByteMD 编辑器（gfm/highlight/medium-zoom/math-ssr/mermaid 插件 + CodeMirror 主题切换）+ 自动保存（localStorage 30s 节流）+ Ctrl/⌘+S + 离开确认（ElMessageBox） |
+| M3 后台管理 | ✅ | 笔记 CRUD（含 Markdown 导入/导出）/ 图片 / 标签 / 评论 / 设置；Dashboard 已接入 ECharts（访客趋势折线 / 终端分布饼 / Top 笔记 PV+UV 分组条形 / 入口访客 PV+UV 分组条形 + 空/载/错三态 + 主题联动 + 7/30/90 天切换）；NoteEdit 已接入 ByteMD 编辑器（gfm/highlight/medium-zoom/math-ssr/mermaid 插件 + CodeMirror 主题切换）+ 自动保存（localStorage 30s 节流）+ Ctrl/⌘+S + 离开确认（ElMessageBox） |
 | M4 优化打磨 | ✅ | 性能：Element Plus 按需导入（unplugin）+ 路由级懒加载；安全：后端安全响应头中间件（CSP/X-Frame-Options/COOP/Permissions-Policy）；动效：reduced-motion 全量化；可访问性：skip-link + aria-label + 亮色 accent 调至 indigo-600 通过 WCAG AA + heading 层级修正（每页唯一 h1，无跨级）；375px 响应式（header flex-wrap / dialog max-width / 表格横滚 / 超窄屏 padding 缩减）；Lighthouse CI 自动化（lighthouserc.cjs + npm run lhci）；布局：移动端抽屉统一为 AppDrawer 组件（前台/后台复用）+ el-scrollbar 接管页面滚动（body 固定 100vh、路由切换自动回顶）+ 统一菜单栏样式（navbar-h 64→58px） |
 | M5 部署上线 | ✅ | Nginx 生产配置（SPA fallback / /api 反代 / /llmblog_uploads 直出 / gzip / 安全头 / 静态长缓存）；SQLite 备份脚本（PowerShell + Bash，WAL checkpoint + 压缩 + 保留策略）；Docker 容器化（多阶段前端构建 + 后端 + docker-compose + .dockerignore）；环境变量示例 + README 部署章节（Docker / 裸金属 / systemd / cron 备份） |
 

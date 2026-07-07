@@ -10,7 +10,7 @@ from app.core.config import settings
 from app.core.response import fail
 from app.db.database import SessionLocal
 from app.db.init_db import init_db, migrate, ensure_default_settings
-from app.api import auth, notes, tags, comments, images, stats, settings as settings_api, entry
+from app.api import auth, notes, tags, comments, images, stats, settings as settings_api, entry, visit
 
 
 @asynccontextmanager
@@ -75,6 +75,7 @@ app.include_router(images.router, prefix=api_prefix)
 app.include_router(stats.router, prefix=api_prefix)
 app.include_router(settings_api.router, prefix=api_prefix)
 app.include_router(entry.router, prefix=api_prefix)
+app.include_router(visit.router, prefix=api_prefix)
 
 
 @app.exception_handler(RequestValidationError)

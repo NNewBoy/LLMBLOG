@@ -34,7 +34,12 @@ async function more() {
   await load(false)
 }
 
-onMounted(() => load(true))
+import { recordEntryClick } from '@/api'
+
+onMounted(() => {
+  load(true)
+  recordEntryClick('/').catch(() => {})
+})
 </script>
 
 <template>

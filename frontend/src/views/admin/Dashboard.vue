@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, onBeforeUnmount, ref, computed, nextTick } from 'vue'
-import { getOverview, getVisitors, getTopNotes, getTerminals, getEntryStats } from '@/api'
+import { getOverview, getVisitors, getTopNotes, getTerminals, getEntryStats, recordEntryClick } from '@/api'
 import type { Overview, DayPoint, TerminalPoint, TopNote, EntryStats } from '@/types'
 import GlassCard from '@/components/GlassCard.vue'
 import BaseChart from '@/components/BaseChart.vue'
@@ -136,11 +136,12 @@ const topOption = computed(() => {
     .slice()
     .reverse()
     .map((n) => ({
-      value: n.view_count,
       name: n.title.length > 16 ? n.title.slice(0, 16) + '…' : n.title,
+      pv: n.view_count,
+      uv: n.uv,
     }))
   return {
-    color: ['#6366f1'],
+    color: ['#6366f1', '#22c55e'],
     textStyle: { color: c.text, fontSize: 12 },
     tooltip: {
       trigger: 'axis',
@@ -149,7 +150,12 @@ const topOption = computed(() => {
       borderColor: c.border,
       textStyle: { color: c.text },
     },
-    grid: { left: 8, right: 40, top: 10, bottom: 10, containLabel: true },
+    legend: {
+      data: ['访问量', '访客数'],
+      top: 0,
+      textStyle: { color: c.textSecondary },
+    },
+    grid: { left: 8, right: 40, top: 36, bottom: 10, containLabel: true },
     xAxis: {
       type: 'value',
       splitLine: { lineStyle: { color: c.border } },
@@ -164,9 +170,18 @@ const topOption = computed(() => {
     animation: !reduceMotion.value,
     series: [
       {
+        name: '访问量',
         type: 'bar',
-        data: data.map((d) => d.value),
-        barWidth: '55%',
+        data: data.map((d) => d.pv),
+        barGap: '10%',
+        barCategoryGap: '45%',
+        itemStyle: { borderRadius: [0, 4, 4, 0] },
+        label: { show: true, position: 'right', color: c.textSecondary, fontSize: 11 },
+      },
+      {
+        name: '访客数',
+        type: 'bar',
+        data: data.map((d) => d.uv),
         itemStyle: { borderRadius: [0, 4, 4, 0] },
         label: { show: true, position: 'right', color: c.textSecondary, fontSize: 11 },
       },
@@ -177,15 +192,12 @@ const topOption = computed(() => {
 const entryOption = computed(() => {
   const c = themeColors()
   const targets = entryStats.value?.targets || []
-  const data = targets
-    .slice()
-    .reverse()
-    .map((t) => ({
-      value: t.count,
-      name: t.title || '(未知)',
-    }))
+  const data = targets.slice().reverse()
+  const names = data.map((t) => t.title || '(未知)')
+  const pvs = data.map((t) => t.count)
+  const uvs = data.map((t) => t.uv)
   return {
-    color: ['#6366f1'],
+    color: ['#6366f1', '#22c55e'],
     textStyle: { color: c.text, fontSize: 12 },
     tooltip: {
       trigger: 'axis',
@@ -194,7 +206,12 @@ const entryOption = computed(() => {
       borderColor: c.border,
       textStyle: { color: c.text },
     },
-    grid: { left: 8, right: 40, top: 10, bottom: 10, containLabel: true },
+    legend: {
+      data: ['访问量', '访客数'],
+      top: 0,
+      textStyle: { color: c.textSecondary },
+    },
+    grid: { left: 8, right: 40, top: 36, bottom: 10, containLabel: true },
     xAxis: {
       type: 'value',
       splitLine: { lineStyle: { color: c.border } },
@@ -202,16 +219,25 @@ const entryOption = computed(() => {
     },
     yAxis: {
       type: 'category',
-      data: data.map((d) => d.name),
+      data: names,
       axisLine: { lineStyle: { color: c.border } },
       axisLabel: { color: c.textSecondary, fontSize: 11 },
     },
     animation: !reduceMotion.value,
     series: [
       {
+        name: '访问量',
         type: 'bar',
-        data: data.map((d) => d.value),
-        barWidth: '55%',
+        data: pvs,
+        barGap: '10%',
+        barCategoryGap: '45%',
+        itemStyle: { borderRadius: [0, 4, 4, 0] },
+        label: { show: true, position: 'right', color: c.textSecondary, fontSize: 11 },
+      },
+      {
+        name: '访客数',
+        type: 'bar',
+        data: uvs,
         itemStyle: { borderRadius: [0, 4, 4, 0] },
         label: { show: true, position: 'right', color: c.textSecondary, fontSize: 11 },
       },
@@ -304,6 +330,8 @@ const themeObserver = new MutationObserver(() => refreshAllCharts())
 
 onMounted(async () => {
   await Promise.all([loadOverview(), loadVisitors(), loadTerminals(), loadTop(), loadEntry()])
+  // 记录后台访问（异步、失败不影响页面）
+  recordEntryClick('/admin').catch(() => {})
   if (document.documentElement) {
     themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
   }
@@ -371,8 +399,8 @@ onBeforeUnmount(() => themeObserver.disconnect())
         </div>
         <div v-else-if="topErr" class="chart-empty">{{ topErr }}</div>
         <div v-else-if="!topNotes.length" class="chart-empty">暂无笔记数据</div>
-        <BaseChart v-else ref="topRef" :option="topOption" height="280px"
-          aria-label="热门笔记浏览量条形图" />
+        <BaseChart v-else ref="topRef" :option="topOption" height="300px"
+          aria-label="热门笔记访问量与访客数分组条形图" />
       </GlassCard>
     </div>
 
@@ -384,8 +412,8 @@ onBeforeUnmount(() => themeObserver.disconnect())
       </div>
       <div v-else-if="entryErr" class="chart-empty">{{ entryErr }}</div>
       <div v-else-if="!entryStats?.targets.length" class="chart-empty">暂无入口点击数据</div>
-      <BaseChart v-else ref="entryRef" :option="entryOption" height="280px"
-        aria-label="入口访客点击量条形图" />
+      <BaseChart v-else ref="entryRef" :option="entryOption" height="300px"
+        aria-label="入口访问量与访客数分组条形图" />
     </GlassCard>
   </div>
 </template>

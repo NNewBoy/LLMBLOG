@@ -50,9 +50,13 @@ def top_notes(
     _: str = Depends(require_admin),
 ):
     since = now_naive() - timedelta(days=days)
-    # 按笔记访问路径统计窗口内访问数（path 形如 /note/{slug}）
+    # 按笔记访问路径统计窗口内访问数与访客数（path 形如 /note/{slug}）
     rows = (
-        db.query(Visitor.path, func.count().label("c"))
+        db.query(
+            Visitor.path,
+            func.count().label("c"),
+            func.count(func.distinct(Visitor.fingerprint)).label("uv"),
+        )
         .filter(
             Visitor.source == "note",
             Visitor.created_at >= since,
@@ -63,24 +67,27 @@ def top_notes(
         .limit(limit)
         .all()
     )
-    slug_counts: dict[str, int] = {}
+    slug_stats: dict[str, dict[str, int]] = {}
     for r in rows:
         slug = (r.path or "").replace("/note/", "", 1)
         if slug:
-            slug_counts[slug] = int(r.c)
+            slug_stats[slug] = {"count": int(r.c), "uv": int(r.uv)}
     result = []
-    if slug_counts:
+    if slug_stats:
         notes = (
             db.query(Note)
-            .filter(Note.slug.in_(list(slug_counts)), Note.deleted_at.is_(None))
+            .filter(Note.slug.in_(list(slug_stats)), Note.deleted_at.is_(None))
             .all()
         )
         note_map = {n.slug: n for n in notes}
         # 保持按窗口内访问数倒序
-        for slug, count in slug_counts.items():
+        for slug, stats in slug_stats.items():
             n = note_map.get(slug)
             if n:
-                result.append({"id": n.id, "title": n.title, "slug": n.slug, "view_count": count})
+                result.append({
+                    "id": n.id, "title": n.title, "slug": n.slug,
+                    "view_count": stats["count"], "uv": stats["uv"],
+                })
     return ok(result)
 
 
@@ -107,12 +114,19 @@ def entry_stats(
     db: Session = Depends(get_db),
     _: str = Depends(require_admin),
 ):
-    """入口页点击统计：总点击数与各入口标题的点击数。"""
+    """入口页点击统计：总点击数/总访客数与各入口标题的点击数/访客数。"""
     since = now_naive() - timedelta(days=days)
     base = db.query(Visitor).filter(Visitor.source == "entry", Visitor.created_at >= since)
     total = base.count()
+    total_uv = db.query(func.count(func.distinct(Visitor.fingerprint))).filter(
+        Visitor.source == "entry", Visitor.created_at >= since
+    ).scalar() or 0
     rows = (
-        db.query(Visitor.target, func.count().label("c"))
+        db.query(
+            Visitor.target,
+            func.count().label("c"),
+            func.count(func.distinct(Visitor.fingerprint)).label("uv"),
+        )
         .filter(Visitor.source == "entry", Visitor.created_at >= since)
         .group_by(Visitor.target)
         .order_by(func.count().desc())
@@ -120,7 +134,7 @@ def entry_stats(
     )
 
     # 构建 target → title 映射
-    title_map: dict[str, str] = {"/": "Blog 主页", "/admin": "Blog 后台"}
+    title_map: dict[str, str] = {"/": "Blog 主页", "/admin": "Blog 后台", '/entry': '入口页'}
     setting = db.query(Setting).first()
     if setting:
         for link in json.loads(setting.entry_links or "[]"):
@@ -130,5 +144,13 @@ def entry_stats(
 
     return ok({
         "total": total,
-        "targets": [{"title": title_map.get(r.target or "", r.target or "(未知)"), "count": int(r.c)} for r in rows],
+        "total_uv": int(total_uv),
+        "targets": [
+            {
+                "title": title_map.get(r.target or "", r.target or "(未知)"),
+                "count": int(r.c),
+                "uv": int(r.uv),
+            }
+            for r in rows
+        ],
     })

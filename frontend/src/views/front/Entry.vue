@@ -12,7 +12,11 @@ const router = useRouter()
 const settings = useSettingsStore()
 const theme = useThemeStore()
 
-onMounted(() => settings.load())
+onMounted(() => {
+  settings.load()
+  // 记录入口页访问（异步、失败不影响页面）
+  recordEntryClick('/entry').catch(() => {})
+})
 
 interface EntryItem {
   key: string
@@ -47,7 +51,7 @@ function withThemeParam(url: string): string {
 
 function go(item: EntryItem) {
   // 记录入口点击（异步、失败不阻塞跳转）
-  recordEntryClick(item.target).catch(() => {})
+  // recordEntryClick(item.target).catch(() => {})
   if (item.internal) {
     router.push(item.target)
   } else {
