@@ -1,0 +1,1 @@
+import{k as f,h as i,x as p}from"./index-DgtgrmOZ.js";import{b as u}from"./isUndefined-1fRA9rzB.js";import{b}from"./_baseEach-DrJzjjJ0.js";function o(r,a){var s=-1,e=f(r)?Array(r.length):[];return b(r,function(t,m,n){e[++s]=a(t,m,n)}),e}function A(r,a){var s=i(r)?p:o;return s(r,u(a))}export{o as b,A as m};
