@@ -20,7 +20,7 @@ class NoteBase(BaseModel):
 
 
 class NoteCreate(NoteBase):
-    pass
+    created_at: datetime | None = None
 
 
 class NoteUpdate(BaseModel):

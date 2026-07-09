@@ -102,6 +102,8 @@ onMounted(async () => {
     await nextTick()
     loaded.value = true
   } else {
+    // 新建笔记：默认时间为当前时间
+    form.value.created_at = new Date().toLocaleString('sv-SE').replace(' ', 'T')
     // 从导入 Markdown 功能传入的内容
     const mdContent = route.query.md_content as string
     const mdTitle = route.query.md_title as string
@@ -179,7 +181,9 @@ async function save() {
       router.push('/admin/notes')
     } else {
       const { created_at, ...rest } = form.value
-      await createNote(rest)
+      const payload: Record<string, any> = { ...rest }
+      if (created_at) payload.created_at = created_at
+      await createNote(payload)
       dirty.value = false
       clearDraft()
       ElMessage.success('已创建')
@@ -223,7 +227,7 @@ async function save() {
     <div class="form-row">
       <el-input v-model="form.summary" type="textarea" :rows="2" placeholder="摘要（留空自动生成）" />
     </div>
-    <div class="form-row grid2" v-if="isEdit">
+    <div class="form-row grid2">
       <el-date-picker
         v-model="form.created_at"
         type="datetime"
@@ -232,9 +236,6 @@ async function save() {
         value-format="YYYY-MM-DDTHH:mm:ss"
         style="width: 100%"
       />
-      <el-checkbox v-model="form.is_pinned">置顶</el-checkbox>
-    </div>
-    <div class="form-row" v-else>
       <el-checkbox v-model="form.is_pinned">置顶</el-checkbox>
     </div>
     <div class="form-row">

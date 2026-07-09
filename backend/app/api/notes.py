@@ -8,6 +8,7 @@ from app.core.response import ok, fail
 from app.core.deps import require_admin, client_ip
 from app.models.note import Note
 from app.models.tag import Tag
+from app.utils.timezone import now_naive
 from app.models.visitor import make_fingerprint
 from app.services.visitor import record_visit
 from app.schemas.note import NoteCreate, NoteUpdate
@@ -130,6 +131,8 @@ def create_note(body: NoteCreate, db: Session = Depends(get_db), _: str = Depend
         status=body.status, is_pinned=1 if body.is_pinned else 0,
         slug="tmp-" + now_naive().strftime("%H%M%S%f"),
     )
+    if body.created_at is not None:
+        n.created_at = body.created_at
     db.add(n)
     db.commit()
     db.refresh(n)
