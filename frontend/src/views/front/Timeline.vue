@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { getTimeline } from '@/api'
 import GlassCard from '@/components/GlassCard.vue'
@@ -9,6 +9,10 @@ import Skeleton from '@/components/Skeleton.vue'
 const data = ref<Record<string, Record<string, any[]>>>({})
 const loading = ref(true)
 const router = useRouter()
+
+const sortedYears = computed(() =>
+  Object.keys(data.value).sort((a, b) => Number(b) - Number(a)),
+)
 
 onMounted(async () => {
   try {
@@ -27,10 +31,10 @@ function fmt(d: string) {
     <h1 class="page-title">时间线</h1>
     <Skeleton v-if="loading" :lines="6" />
     <template v-else>
-      <div v-if="Object.keys(data).length" class="years">
-        <section v-for="(months, year) in data" :key="year" class="year">
+      <div v-if="sortedYears.length" class="years">
+        <section v-for="year in sortedYears" :key="year" class="year">
           <h2 class="year-title">{{ year }}</h2>
-          <div v-for="(items, month) in months" :key="month" class="month">
+          <div v-for="(items, month) in data[year]" :key="month" class="month">
             <h3 class="month-title">{{ month }} 月</h3>
             <ul class="items">
               <li v-for="n in items" :key="n.id" @click="router.push({ name: 'note-detail', params: { slug: n.slug } })">
