@@ -1,0 +1,1 @@
+import{s as b,o as u,i as c}from"./hasIn-Bh84YiTg.js";import{aA as m,k as p}from"./index-BW5I9XY_.js";function l(r,e){return b(u(r,e,c),r+"")}function g(r){return function(e,s,n){for(var o=-1,t=Object(e),i=n(e),f=i.length;f--;){var a=i[++o];if(s(t[a],a,t)===!1)break}return e}}var v=g();function A(r){return m(r)&&p(r)}export{l as a,v as b,A as i};
